@@ -1,40 +1,46 @@
 using UnityEngine;
+using System.Collections;
 
-public class PlayerLife : MonoBehaviour, ICustomUpdate
+
+public class LifeSystem : MonoBehaviour, ICustomUpdate
 {
-    public float maxLife = 10f;
-    public float currentLife;
-    public float damagePerSecond = 1f;
-    public float regenPerSecond = 1f;
-
+    [SerializeField] private float maxLife = 100f;
+    [SerializeField] private float regenPerSecond = 5f;
+    [SerializeField] private float damagePerSecond = 10f;
+    private UpdateManager _updateManager;
+    private float currentLife;
     private Vector3 lastPosition;
     private bool isMoving;
 
     private void Start()
     {
+        _updateManager = ServiceLocator.Instance.GetService<UpdateManager>();
+        if (_updateManager != null)
+        {
+            _updateManager.Register(this);
+        }
+        else
+        {
+            Debug.LogError("UpdateManager not found in ServiceLocator");
+        }
+
         currentLife = maxLife;
         lastPosition = transform.position;
-
-        UpdateManager manager = FindObjectOfType<UpdateManager>();
-        if (manager != null)
-        {
-            manager.Register(this);
-        }
     }
-
     public void CustomUpdate()
     {
+
         DetectMovement();
 
         if (isMoving)
         {
             currentLife += regenPerSecond * Time.deltaTime;
-            Debug.Log("Regenerando vida");
+            Debug.Log("regen");
         }
         else
         {
             currentLife -= damagePerSecond * Time.deltaTime;
-            Debug.Log("Perdiendo vida");
+            Debug.Log("losing");
         }
 
         currentLife = Mathf.Clamp(currentLife, 0f, maxLife);
@@ -44,14 +50,23 @@ public class PlayerLife : MonoBehaviour, ICustomUpdate
             Die();
         }
     }
-
     private void DetectMovement()
     {
         isMoving = transform.position != lastPosition;
         lastPosition = transform.position;
     }
-
     private void Die()
     {
+        Debug.Log("Player Died");
+        Destroy(gameObject);
+
+    }
+    private void OnDestroy()
+    {
+        var updateManager = ServiceLocator.Instance.GetService<UpdateManager>();
+        if (updateManager != null)
+        {
+            updateManager.Unregister(this);
+        }
     }
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 public class UpdateManagerController: MonoBehaviour
 {
     private int i;
-
     public virtual void UpdateMe()
     {
         i++;
