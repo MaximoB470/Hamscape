@@ -207,9 +207,8 @@ GameObject:
   m_Component:
   - component: {fileID: 457561888}
   - component: {fileID: 457561887}
-  - component: {fileID: 457561884}
-  - component: {fileID: 457561889}
   - component: {fileID: 457561890}
+  - component: {fileID: 457561891}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -217,26 +216,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &457561884
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 457561883}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ea66b1bdb355bd4f845daf270995b62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  jumpForce: 5
-  gravity: 9.8
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  groundCheck: {fileID: 442637290}
-  groundCheckRadius: 0.2
 --- !u!212 &457561887
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -305,21 +284,6 @@ Transform:
   - {fileID: 442637290}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &457561889
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 457561883}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c6d7e9afd4931d49b9829cc40d59b77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxLife: 100
-  regenPerSecond: 5
-  damagePerSecond: 10
 --- !u!58 &457561890
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -355,6 +319,29 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &457561891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457561883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41a44c0bc1aa7af45867e7a3926d0cc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+  jumpForce: 5
+  gravity: 9.8
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  groundCheck: {fileID: 442637290}
+  groundCheckRadius: 0.2
+  maxLife: 100
+  regenPerSecond: 5
+  damagePerSecond: 10
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
