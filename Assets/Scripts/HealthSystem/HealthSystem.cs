@@ -1,0 +1,47 @@
+using System;
+using UnityEngine;
+
+public abstract class HealthSystem : IUpdatable
+{
+    protected Transform _transform;
+    protected float _maxHealth;
+    protected float _currentHealth;
+    protected Action _onDeath;
+
+    public HealthSystem(Transform transform, float maxHealth, Action onDeath)
+    {
+        _transform = transform;
+        _maxHealth = maxHealth;
+        _currentHealth = maxHealth;
+        _onDeath = onDeath;
+    }
+
+    public virtual void Tick(float deltaTime)
+    {
+        if (_currentHealth <= 0f)
+        {
+            _onDeath?.Invoke();
+        }
+    }
+
+    public virtual void TakeDamage(float amount)
+    {
+        _currentHealth -= amount;
+        _currentHealth = Mathf.Max(0f, _currentHealth);
+
+        if (_currentHealth <= 0f)
+        {
+            _onDeath?.Invoke();
+        }
+    }
+
+    public virtual void Heal(float amount)
+    {
+        _currentHealth += amount;
+        _currentHealth = Mathf.Min(_maxHealth, _currentHealth);
+    }
+
+    public float GetCurrentHealth() => _currentHealth;
+    public float GetMaxHealth() => _maxHealth;
+    public float GetHealthPercentage() => _currentHealth / _maxHealth;
+}

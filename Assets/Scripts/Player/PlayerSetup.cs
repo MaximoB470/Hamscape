@@ -18,11 +18,10 @@ public class PlayerSetup : MonoBehaviour
     [SerializeField] private float damagePerSecond = 10f;
 
     private PlayerMovement _playerMovement;
-    private lifeSystem _lifeSystem;
+    private PlayerHealthSystem _healthSystem;
 
     private void Awake()
     {
-        // Inicializar sistemas
         _playerMovement = new PlayerMovement(
             transform,
             groundCheck,
@@ -33,7 +32,7 @@ public class PlayerSetup : MonoBehaviour
             groundLayer
         );
 
-        _lifeSystem = new lifeSystem(
+        _healthSystem = new PlayerHealthSystem(
             transform,
             maxLife,
             regenPerSecond,
@@ -43,7 +42,7 @@ public class PlayerSetup : MonoBehaviour
 
         // Registrar sistemas en el UpdateManager
         UpdateManager.Instance.Register(_playerMovement);
-        UpdateManager.Instance.Register(_lifeSystem);
+        UpdateManager.Instance.Register(_healthSystem);
     }
 
     private void OnPlayerDeath()
@@ -52,16 +51,29 @@ public class PlayerSetup : MonoBehaviour
 
         // Desregistrar sistemas antes de destruir el objeto
         UpdateManager.Instance.Unregister(_playerMovement);
-        UpdateManager.Instance.Unregister(_lifeSystem);
+        UpdateManager.Instance.Unregister(_healthSystem);
 
-        // Destruir el objeto del jugador
         Destroy(gameObject);
     }
 
     private void OnDestroy()
     {
-        // Asegurarse de desregistrar en caso de destrucción inesperada
+        // Asegurarse de desregistrar en caso de hacer cagada
         UpdateManager.Instance.Unregister(_playerMovement);
-        UpdateManager.Instance.Unregister(_lifeSystem);
+        UpdateManager.Instance.Unregister(_healthSystem);
+    }
+    public void ApplyDamage(float amount)
+    {
+        _healthSystem.TakeDamage(amount);
+    }
+
+    public void ApplyHealing(float amount)
+    {
+        _healthSystem.Heal(amount);
+    }
+
+    public float GetHealthPercentage()
+    {
+        return _healthSystem.GetHealthPercentage();
     }
 }
