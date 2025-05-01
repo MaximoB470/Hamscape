@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : IUpdatable
 {
+    [Header("Movement Settings")]
     private Transform _transform;
     private float _moveSpeed = 5f;
+
+    [Header("Jump Settings")]
     private float _jumpForce = 5f;
     private float _gravity = 9.8f;
     private float _verticalVelocity = 0f;
@@ -13,6 +14,10 @@ public class PlayerMovement : IUpdatable
     private Transform _groundCheck;
     private float _groundCheckRadius = 0.2f;
     private LayerMask _groundLayer;
+
+    [Header("Acceleration settings")]
+    private float _acceleration = 10f; // aceleración
+    private float _currentHorizontalSpeed = 0f;
 
     public PlayerMovement(Transform transform, Transform groundCheck, float moveSpeed, float jumpForce, float gravity, float groundCheckRadius, LayerMask groundLayer)
     {
@@ -27,12 +32,18 @@ public class PlayerMovement : IUpdatable
 
     public void Tick(float deltaTime)
     {
-        // Comprobar si est? en el suelo
+        // Comprobar si está en el suelo
         _isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundLayer);
 
+        // Entrada horizontal
+        float input = Input.GetAxisRaw("Horizontal"); 
+        float targetSpeed = input * _moveSpeed;
+
+        // Aceleración hacia la velocidad objetivo
+        _currentHorizontalSpeed = Mathf.MoveTowards(_currentHorizontalSpeed, targetSpeed, _acceleration * deltaTime);
+
         // Movimiento horizontal
-        float h = Input.GetAxis("Horizontal");
-        Vector2 movement = new Vector2(h, 0f) * _moveSpeed * deltaTime;
+        Vector2 movement = new Vector2(_currentHorizontalSpeed, 0f) * deltaTime;
         _transform.Translate(movement);
 
         // Saltar

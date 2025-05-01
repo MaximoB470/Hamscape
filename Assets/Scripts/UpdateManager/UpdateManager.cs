@@ -30,7 +30,6 @@ public class UpdateManager : MonoBehaviour
             _updatables[i].Tick(Time.deltaTime);
         }
     }
-
     // Registro de objetos actualizables
     public void Register(IUpdatable updatable)
     {
@@ -39,7 +38,6 @@ public class UpdateManager : MonoBehaviour
             _updatables.Add(updatable);
         }
     }
-
     // Eliminar registro de objetos actualizables
     public void Unregister(IUpdatable updatable)
     {

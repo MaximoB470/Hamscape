@@ -31,7 +31,6 @@ public class PlayerSetup : MonoBehaviour
             groundCheckRadius,
             groundLayer
         );
-
         _healthSystem = new PlayerHealthSystem(
             transform,
             maxLife,
@@ -39,12 +38,10 @@ public class PlayerSetup : MonoBehaviour
             damagePerSecond,
             OnPlayerDeath
         );
-
         // Registrar sistemas en el UpdateManager
         UpdateManager.Instance.Register(_playerMovement);
         UpdateManager.Instance.Register(_healthSystem);
     }
-
     private void OnPlayerDeath()
     {
         Debug.Log("Player Died");
@@ -55,7 +52,6 @@ public class PlayerSetup : MonoBehaviour
 
         Destroy(gameObject);
     }
-
     private void OnDestroy()
     {
         // Asegurarse de desregistrar en caso de hacer cagada
@@ -66,12 +62,10 @@ public class PlayerSetup : MonoBehaviour
     {
         _healthSystem.TakeDamage(amount);
     }
-
     public void ApplyHealing(float amount)
     {
         _healthSystem.Heal(amount);
     }
-
     public float GetHealthPercentage()
     {
         return _healthSystem.GetHealthPercentage();
