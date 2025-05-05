@@ -12,6 +12,10 @@ public class PlayerSetup : MonoBehaviour, IDamageable
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
 
+    [Header("Acceleration Settings")]
+    [SerializeField] private float acceleration = 10f;
+    [SerializeField] private float deceleration = 15f;
+
     [Header("Life Settings")]
     [SerializeField] private float maxLife = 100f;
     [SerializeField] private float regenPerSecond = 5f;
@@ -88,5 +92,22 @@ public class PlayerSetup : MonoBehaviour, IDamageable
     public float GetHealthPercentage()
     {
         return _healthSystem.GetHealthPercentage();
+    }
+    public void SetAcceleration(float newAcceleration)
+    {
+        acceleration = newAcceleration;
+        if (_playerMovement != null)
+        {
+            _playerMovement.SetAcceleration(acceleration);
+        }
+    }
+
+    public void SetDeceleration(float newDeceleration)
+    {
+        deceleration = newDeceleration;
+        if (_playerMovement != null)
+        {
+            _playerMovement.SetDeceleration(deceleration);
+        }
     }
 }

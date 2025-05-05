@@ -371,6 +371,8 @@ MonoBehaviour:
     m_Bits: 64
   groundCheck: {fileID: 442637290}
   groundCheckRadius: 0.2
+  acceleration: 10
+  deceleration: 15
   maxLife: 100
   regenPerSecond: 5
   damagePerSecond: 10

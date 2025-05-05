@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class PlayerMovement : IUpdatable
 {
-    [Header("Movement & Jump Settings")]
     private Rigidbody2D _rb;
     private float _moveSpeed;
     private float _jumpForce;
@@ -13,9 +12,13 @@ public class PlayerMovement : IUpdatable
     private Transform _groundCheck;
     private float _groundCheckRadius;
     private LayerMask _groundLayer;
-    private bool _lastMovingState = false;
 
-    [Header("Dash Settings")]
+    // acceleration
+    private float _acceleration = 10f;
+    private float _currentHorizontalSpeed = 0f;
+    private float _deceleration = 15f;
+
+    // Dash variables
     private bool _isDashing = false;
     private float _dashSpeed = 15f;
     private float _dashDuration = 0.2f;
@@ -23,6 +26,10 @@ public class PlayerMovement : IUpdatable
     private float _dashTimer = 0f;
     private float _dashCooldownTimer = 0f;
     private Vector2 _dashDirection;
+
+    // Movement detection
+    private Vector2 _lastPosition;
+    private bool _wasMoving;
     private List<IMovementStateObserver> _movementObservers = new List<IMovementStateObserver>();
 
     public PlayerMovement(
@@ -32,7 +39,9 @@ public class PlayerMovement : IUpdatable
         float jumpForce,
         float gravity,
         float groundCheckRadius,
-        LayerMask groundLayer
+        LayerMask groundLayer,
+        float acceleration = 10f,
+        float deceleration = 15f
     )
     {
         _rb = rb;
@@ -42,9 +51,12 @@ public class PlayerMovement : IUpdatable
         _gravity = gravity;
         _groundCheckRadius = groundCheckRadius;
         _groundLayer = groundLayer;
-
+        _acceleration = acceleration;
+        _deceleration = deceleration;
         _rb.gravityScale = 0f;
+        _lastPosition = rb.position;
     }
+
     public void RegisterMovementObserver(IMovementStateObserver observer)
     {
         if (!_movementObservers.Contains(observer))
@@ -52,10 +64,19 @@ public class PlayerMovement : IUpdatable
             _movementObservers.Add(observer);
         }
     }
+
+    public void SetAcceleration(float acceleration)
+    {
+        _acceleration = Mathf.Max(0.1f, acceleration);
+    }
+
+    public void SetDeceleration(float deceleration)
+    {
+        _deceleration = Mathf.Max(0.1f, deceleration);
+    }
+
     public void Tick(float deltaTime)
     {
-
-
         _isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundLayer);
 
         if (_dashCooldownTimer > 0)
@@ -66,21 +87,57 @@ public class PlayerMovement : IUpdatable
         if (_isDashing)
         {
             HandleDash(deltaTime);
-            return; 
+        }
+        else
+        {
+            if (_dashCooldownTimer <= 0 && Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                StartDash();
+            }
+            else
+            {
+                HandleSmoothMovement(deltaTime);
+            }
         }
 
-        if (_dashCooldownTimer <= 0 && Input.GetKeyDown(KeyCode.LeftShift))
+        bool isMoving = CheckIfMoving();
+
+        if (isMoving != _wasMoving)
         {
-            StartDash();
-            return;
+            NotifyMovementStateChange(isMoving);
         }
-        HandleNormalMovement(deltaTime);
+        _wasMoving = isMoving;
+        _lastPosition = _rb.position;
     }
 
-    private void HandleNormalMovement(float deltaTime)
+    private bool CheckIfMoving()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float horizontalVelocity = horizontalInput * _moveSpeed;
+        bool hasHorizontalMovement = Mathf.Abs(_currentHorizontalSpeed) > 0.1f;
+        bool hasVerticalMovement = !_isGrounded || Mathf.Abs(_verticalVelocity) > 0.1f;
+        return hasHorizontalMovement || hasVerticalMovement || _isDashing;
+    }
+
+    private void NotifyMovementStateChange(bool isMoving)
+    {
+        foreach (var observer in _movementObservers)
+        {
+            observer.OnMovementStateChanged(isMoving);
+        }
+    }
+
+    private void HandleSmoothMovement(float deltaTime)
+    {
+        float horizontalInput = Input.GetAxisRaw("Horizontal");
+
+        float targetSpeed = horizontalInput * _moveSpeed;
+
+        float accelerationRate = horizontalInput != 0 ? _acceleration : _deceleration;
+
+        _currentHorizontalSpeed = Mathf.MoveTowards(
+            _currentHorizontalSpeed,
+            targetSpeed,
+            accelerationRate * deltaTime
+        );
 
         if (_isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
@@ -95,25 +152,14 @@ public class PlayerMovement : IUpdatable
             _verticalVelocity = 0f;
         }
 
-        _rb.velocity = new Vector2(horizontalVelocity, _verticalVelocity);
-
-        bool currentlyMoving = Mathf.Abs(horizontalInput) > 0.01f || Mathf.Abs(_rb.velocity.y) > 0.01f;
-
-        if (currentlyMoving != _lastMovingState)
-        {
-            foreach (var observer in _movementObservers)
-            {
-                observer.OnMovementStateChanged(currentlyMoving);
-            }
-
-            _lastMovingState = currentlyMoving;
-        }
+        _rb.velocity = new Vector2(_currentHorizontalSpeed, _verticalVelocity);
     }
+
     private void StartDash()
     {
         _isDashing = true;
         _dashTimer = _dashDuration;
-        _dashCooldownTimer = _dashCooldown; 
+        _dashCooldownTimer = _dashCooldown;
 
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
@@ -122,10 +168,13 @@ public class PlayerMovement : IUpdatable
 
         if (_dashDirection == Vector2.zero)
         {
-            _dashDirection = new Vector2(_rb.velocity.x, 0).normalized;
-            if (_dashDirection == Vector2.zero)
+            if (Mathf.Abs(_currentHorizontalSpeed) > 0.1f)
             {
-                _dashDirection = Vector2.right;
+                _dashDirection = new Vector2(Mathf.Sign(_currentHorizontalSpeed), 0).normalized;
+            }
+            else
+            {
+                _dashDirection = Vector2.right; 
             }
         }
     }
@@ -137,6 +186,10 @@ public class PlayerMovement : IUpdatable
         if (_dashTimer > 0)
         {
             _rb.velocity = _dashDirection * _dashSpeed;
+            if (Mathf.Abs(_dashDirection.x) > 0.1f)
+            {
+                _currentHorizontalSpeed = _dashDirection.x * _moveSpeed * 0.8f;
+            }
         }
         else
         {
@@ -146,6 +199,7 @@ public class PlayerMovement : IUpdatable
             {
                 _verticalVelocity = 0f;
             }
+            _rb.velocity = new Vector2(_currentHorizontalSpeed, _verticalVelocity);
         }
     }
 }
