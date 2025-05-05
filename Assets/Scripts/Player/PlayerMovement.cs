@@ -56,7 +56,6 @@ public class PlayerMovement : IUpdatable
         _rb.gravityScale = 0f;
         _lastPosition = rb.position;
     }
-
     public void RegisterMovementObserver(IMovementStateObserver observer)
     {
         if (!_movementObservers.Contains(observer))
