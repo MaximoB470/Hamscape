@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerSetup : MonoBehaviour
+public class PlayerSetup : MonoBehaviour, IDamageable
 {
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
@@ -17,13 +17,28 @@ public class PlayerSetup : MonoBehaviour
     [SerializeField] private float regenPerSecond = 5f;
     [SerializeField] private float damagePerSecond = 10f;
 
+    [Header("Move or Die Settings")]
+    [SerializeField] private float standingStillDamagePerSecond = 15f;
+    [SerializeField] private float timeBeforeDamagingWhenStill = 1.5f;
+
     private PlayerMovement _playerMovement;
     private PlayerHealthSystem _healthSystem;
+    private Rigidbody2D _rb;
 
     private void Awake()
     {
-        _playerMovement = new PlayerMovement(
+        _healthSystem = new PlayerHealthSystem(
             transform,
+            maxLife,
+            regenPerSecond,
+            damagePerSecond,
+            standingStillDamagePerSecond,
+            timeBeforeDamagingWhenStill,
+            OnPlayerDeath
+        );
+
+        _playerMovement = new PlayerMovement(
+            GetComponent<Rigidbody2D>(),
             groundCheck,
             moveSpeed,
             jumpForce,
@@ -31,41 +46,45 @@ public class PlayerSetup : MonoBehaviour
             groundCheckRadius,
             groundLayer
         );
-        _healthSystem = new PlayerHealthSystem(
-            transform,
-            maxLife,
-            regenPerSecond,
-            damagePerSecond,
-            OnPlayerDeath
-        );
-        // Registrar sistemas en el UpdateManager
+        _playerMovement.RegisterMovementObserver(_healthSystem);
         UpdateManager.Instance.Register(_playerMovement);
         UpdateManager.Instance.Register(_healthSystem);
     }
+
     private void OnPlayerDeath()
     {
         Debug.Log("Player Died");
-
-        // Desregistrar sistemas antes de destruir el objeto
         UpdateManager.Instance.Unregister(_playerMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
-
         Destroy(gameObject);
     }
+
     private void OnDestroy()
     {
-        // Asegurarse de desregistrar en caso de hacer cagada
         UpdateManager.Instance.Unregister(_playerMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
     }
+
+    public void TakeDamage(float amount)
+    {
+        _healthSystem.TakeDamage(amount);
+    }
+
     public void ApplyDamage(float amount)
     {
         _healthSystem.TakeDamage(amount);
     }
+
+    public void StartTimedDamage(float duration)
+    {
+        _healthSystem.StartTimedDamage(duration);
+    }
+
     public void ApplyHealing(float amount)
     {
         _healthSystem.Heal(amount);
     }
+
     public float GetHealthPercentage()
     {
         return _healthSystem.GetHealthPercentage();

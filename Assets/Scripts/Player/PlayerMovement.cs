@@ -1,59 +1,92 @@
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : IUpdatable
 {
-    [Header("Movement Settings")]
-    private Transform _transform;
-    private float _moveSpeed = 5f;
-
-    [Header("Jump Settings")]
-    private float _jumpForce = 5f;
-    private float _gravity = 9.8f;
+    [Header("Movement & Jump Settings")]
+    private Rigidbody2D _rb;
+    private float _moveSpeed;
+    private float _jumpForce;
+    private float _gravity;
     private float _verticalVelocity = 0f;
     private bool _isGrounded;
     private Transform _groundCheck;
-    private float _groundCheckRadius = 0.2f;
+    private float _groundCheckRadius;
     private LayerMask _groundLayer;
+    private bool _lastMovingState = false;
 
-    [Header("Acceleration settings")]
-    private float _acceleration = 10f; // aceleración
-    private float _currentHorizontalSpeed = 0f;
+    [Header("Dash Settings")]
+    private bool _isDashing = false;
+    private float _dashSpeed = 15f;
+    private float _dashDuration = 0.2f;
+    private float _dashCooldown = 1f;
+    private float _dashTimer = 0f;
+    private float _dashCooldownTimer = 0f;
+    private Vector2 _dashDirection;
+    private List<IMovementStateObserver> _movementObservers = new List<IMovementStateObserver>();
 
-    public PlayerMovement(Transform transform, Transform groundCheck, float moveSpeed, float jumpForce, float gravity, float groundCheckRadius, LayerMask groundLayer)
+    public PlayerMovement(
+        Rigidbody2D rb,
+        Transform groundCheck,
+        float moveSpeed,
+        float jumpForce,
+        float gravity,
+        float groundCheckRadius,
+        LayerMask groundLayer
+    )
     {
-        _transform = transform;
+        _rb = rb;
         _groundCheck = groundCheck;
         _moveSpeed = moveSpeed;
         _jumpForce = jumpForce;
         _gravity = gravity;
         _groundCheckRadius = groundCheckRadius;
         _groundLayer = groundLayer;
-    }
 
+        _rb.gravityScale = 0f;
+    }
+    public void RegisterMovementObserver(IMovementStateObserver observer)
+    {
+        if (!_movementObservers.Contains(observer))
+        {
+            _movementObservers.Add(observer);
+        }
+    }
     public void Tick(float deltaTime)
     {
-        // Comprobar si está en el suelo
+
+
         _isGrounded = Physics2D.OverlapCircle(_groundCheck.position, _groundCheckRadius, _groundLayer);
 
-        // Entrada horizontal
-        float input = Input.GetAxisRaw("Horizontal"); 
-        float targetSpeed = input * _moveSpeed;
+        if (_dashCooldownTimer > 0)
+        {
+            _dashCooldownTimer -= deltaTime;
+        }
 
-        // Aceleración hacia la velocidad objetivo
-        _currentHorizontalSpeed = Mathf.MoveTowards(_currentHorizontalSpeed, targetSpeed, _acceleration * deltaTime);
+        if (_isDashing)
+        {
+            HandleDash(deltaTime);
+            return; 
+        }
 
-        // Movimiento horizontal
-        Vector2 movement = new Vector2(_currentHorizontalSpeed, 0f) * deltaTime;
-        _transform.Translate(movement);
+        if (_dashCooldownTimer <= 0 && Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            StartDash();
+            return;
+        }
+        HandleNormalMovement(deltaTime);
+    }
 
-        // Saltar
+    private void HandleNormalMovement(float deltaTime)
+    {
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float horizontalVelocity = horizontalInput * _moveSpeed;
+
         if (_isGrounded && Input.GetKeyDown(KeyCode.Space))
         {
             _verticalVelocity = _jumpForce;
         }
-
-        // Simular gravedad
-        if (!_isGrounded)
+        else if (!_isGrounded)
         {
             _verticalVelocity -= _gravity * deltaTime;
         }
@@ -62,7 +95,57 @@ public class PlayerMovement : IUpdatable
             _verticalVelocity = 0f;
         }
 
-        // Movimiento vertical
-        _transform.Translate(new Vector3(0f, _verticalVelocity * deltaTime, 0f));
+        _rb.velocity = new Vector2(horizontalVelocity, _verticalVelocity);
+
+        bool currentlyMoving = Mathf.Abs(horizontalInput) > 0.01f || Mathf.Abs(_rb.velocity.y) > 0.01f;
+
+        if (currentlyMoving != _lastMovingState)
+        {
+            foreach (var observer in _movementObservers)
+            {
+                observer.OnMovementStateChanged(currentlyMoving);
+            }
+
+            _lastMovingState = currentlyMoving;
+        }
+    }
+    private void StartDash()
+    {
+        _isDashing = true;
+        _dashTimer = _dashDuration;
+        _dashCooldownTimer = _dashCooldown; 
+
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+
+        _dashDirection = new Vector2(horizontalInput, verticalInput).normalized;
+
+        if (_dashDirection == Vector2.zero)
+        {
+            _dashDirection = new Vector2(_rb.velocity.x, 0).normalized;
+            if (_dashDirection == Vector2.zero)
+            {
+                _dashDirection = Vector2.right;
+            }
+        }
+    }
+
+    private void HandleDash(float deltaTime)
+    {
+        _dashTimer -= deltaTime;
+
+        if (_dashTimer > 0)
+        {
+            _rb.velocity = _dashDirection * _dashSpeed;
+        }
+        else
+        {
+            _isDashing = false;
+
+            if (_isGrounded)
+            {
+                _verticalVelocity = 0f;
+            }
+        }
     }
 }
