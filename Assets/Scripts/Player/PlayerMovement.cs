@@ -22,7 +22,7 @@ public class PlayerMovement : IUpdatable
     private float _deceleration = 15f;
 
     // Dash variables
-    private bool _isDashing = false;
+    public bool _isDashing = false;
     private float _dashSpeed = 15f;
     private float _dashDuration = 0.2f;
     private float _dashCooldown = 1f;
@@ -65,6 +65,7 @@ public class PlayerMovement : IUpdatable
         _deceleration = deceleration;
         _rb.gravityScale = 0f;
         _lastPosition = rb.position;
+        ServiceLocator.Instance.Register<PlayerMovement>(this);
     }
 
     public void RegisterMovementObserver(IMovementStateObserver observer)

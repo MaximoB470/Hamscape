@@ -1,75 +1,71 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemySetup : MonoBehaviour
+public class EnemySetup : MonoBehaviour, IDamageable
 {
-    [Header("Enemy Settings")]
+    [Header("Health Settings")]
     [SerializeField] private float maxHealth = 50f;
-    [SerializeField] private float decayRate = 0f;
-    [SerializeField] private bool isDecaying = false;
-    [SerializeField] private float moveSpeed = 3f;
-    [SerializeField] private float detectionRange = 5f;
+
+    [Header("Movement Settings")]
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float horizontalDistance = 3f;
+
+    [Header("Damage Settings")]
+    [SerializeField] private float damageToPlayer = 10f;
+    [SerializeField] private float damageFromDash = 20f;
 
     private EnemyHealthSystem _healthSystem;
     private EnemyMovement _enemyMovement;
-    private ObjectPool<EnemySetup> _pool;
+    private Rigidbody2D _rb;
 
-    public void Initialize(ObjectPool<EnemySetup> pool, Vector3 position)
+    private void Awake()
     {
-        _pool = pool;
-        transform.position = position;
+        _rb = GetComponent<Rigidbody2D>();
 
-        // Crear sistemas solo si no existen
-        if (_healthSystem == null)
+        if (_rb == null)
         {
-            _healthSystem = new EnemyHealthSystem(
-                transform,
-                maxHealth,
-                decayRate,
-                isDecaying,
-                OnEnemyDeath
-            );
-        }
-        else
-        {
-            _healthSystem.Heal(maxHealth);
+            _rb = gameObject.AddComponent<Rigidbody2D>();
+            _rb.gravityScale = 1f;
+            _rb.freezeRotation = true;
+            _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
-        if (_enemyMovement == null)
-        {
-            _enemyMovement = new EnemyMovement(transform, moveSpeed, detectionRange);
-        }
+        _healthSystem = new EnemyHealthSystem(
+            transform,
+            maxHealth,
+            OnEnemyDeath
+        );
 
+        _enemyMovement = new EnemyMovement(
+            transform,
+            _rb,
+            moveSpeed,
+            horizontalDistance
+        );
 
-        UpdateManager.Instance.Register(_healthSystem);
         UpdateManager.Instance.Register(_enemyMovement);
-
-        gameObject.SetActive(true);
+        UpdateManager.Instance.Register(_healthSystem);
     }
 
     private void OnEnemyDeath()
     {
-        UpdateManager.Instance.Unregister(_healthSystem);
+        Debug.Log("Enemy Died");
         UpdateManager.Instance.Unregister(_enemyMovement);
-
-        if (_pool != null)
-        {
-            _pool.ReturnObject(this);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        UpdateManager.Instance.Unregister(_healthSystem);
+        Destroy(gameObject);
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        if (_healthSystem != null)
-            UpdateManager.Instance.Unregister(_healthSystem);
+        UpdateManager.Instance.Unregister(_enemyMovement);
+        UpdateManager.Instance.Unregister(_healthSystem);
+    }
 
-        if (_enemyMovement != null)
-            UpdateManager.Instance.Unregister(_enemyMovement);
+    // Para que el jugador pueda dañar al enemigo
+    public void TakeDamage(float amount)
+    {
+        _healthSystem.TakeDamage(amount);
     }
 
     public void ApplyDamage(float amount)
@@ -80,5 +76,51 @@ public class EnemySetup : MonoBehaviour
     public float GetHealthPercentage()
     {
         return _healthSystem.GetHealthPercentage();
+    }
+
+    public void SetMoveSpeed(float newSpeed)
+    {
+        moveSpeed = newSpeed;
+        if (_enemyMovement != null)
+        {
+            _enemyMovement.SetMoveSpeed(moveSpeed);
+        }
+    }
+
+    public void SetHorizontalDistance(float newDistance)
+    {
+        horizontalDistance = newDistance;
+        if (_enemyMovement != null)
+        {
+            _enemyMovement.SetHorizontalDistance(horizontalDistance);
+        }
+    }
+
+    // Detección de colisiones con el player - similar a Spike
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        HandleCollision(other.gameObject);
+    }
+
+    private void HandleCollision(GameObject target)
+    {
+        // Intentamos obtener el PlayerSetup directamente
+        PlayerSetup playerSetup = target.GetComponent<PlayerSetup>();
+        if (playerSetup != null)
+        {
+            // Intentamos obtener una referencia al PlayerMovement a través del ServiceLocator
+            PlayerMovement playerMovement = ServiceLocator.Instance.GetService<PlayerMovement>();
+
+            // Si el jugador está haciendo dash, el enemigo recibe daño
+            if (playerMovement != null && playerMovement._isDashing)
+            {
+                TakeDamage(damageFromDash);
+            }
+            // Si no está haciendo dash o no podemos verificarlo, el jugador recibe daño
+            else
+            {
+                playerSetup.TakeDamage(damageToPlayer);
+            }
+        }
     }
 }
