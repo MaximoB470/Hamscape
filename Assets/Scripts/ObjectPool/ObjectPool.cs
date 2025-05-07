@@ -2,50 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool<T> where T : MonoBehaviour
+public class ObjectPool<T> : MonoBehaviour where T : Component
 {
-    private T _prefab;
-    private List<T> _pool = new List<T>();
-    private Transform _parent;
-
-    public ObjectPool(T prefab, int initialSize, Transform parent = null)
+    [SerializeField] private T prefab;
+    [SerializeField] private int poolSize = 10;
+    private Queue<T> pool = new Queue<T>();
+    protected virtual void Start()
     {
-        _prefab = prefab;
-        _parent = parent;
-
-        // Crear el pool inicial
-        for (int i = 0; i < initialSize; i++)
+        InitializePool();
+    }
+    private void InitializePool()
+    {
+        for (int i = 0; i < poolSize; i++)
         {
-            CreateObject();
+            T obj = Instantiate(prefab);
+            obj.gameObject.SetActive(false);
+            pool.Enqueue(obj);
         }
     }
-
-    private T CreateObject()
+    public T GetFromPool()
     {
-        T obj = GameObject.Instantiate(_prefab, _parent);
-        obj.gameObject.SetActive(false);
-        _pool.Add(obj);
+        T obj;
+
+        if (pool.Count > 0)
+        {
+            obj = pool.Dequeue();
+        }
+        else
+        {
+            obj = Instantiate(prefab);
+        }
+        obj.gameObject.SetActive(true);
         return obj;
     }
-
-    public T GetObject()
-    {
-        // Buscar un objeto inactivo
-        foreach (T obj in _pool)
-        {
-            if (!obj.gameObject.activeInHierarchy)
-            {
-                obj.gameObject.SetActive(true);
-                return obj;
-            }
-        }
-
-        // Si no hay objetos inactivos, crear uno nuevo
-        return CreateObject();
-    }
-
-    public void ReturnObject(T obj)
+    public void ReturnToPool(T obj)
     {
         obj.gameObject.SetActive(false);
+        pool.Enqueue(obj);
     }
 }

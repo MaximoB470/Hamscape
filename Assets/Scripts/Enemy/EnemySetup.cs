@@ -53,7 +53,12 @@ public class EnemySetup : MonoBehaviour, IDamageable
         Debug.Log("Enemy Died");
         UpdateManager.Instance.Unregister(_enemyMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
-        Destroy(gameObject);
+
+        // Reutiliza enemigo 
+        gameObject.SetActive(false);
+        EnemyPool enemyPool = FindObjectOfType<EnemyPool>();
+        if (enemyPool != null)
+            enemyPool.ReturnToPool(this);
     }
 
     private void OnDestroy()
