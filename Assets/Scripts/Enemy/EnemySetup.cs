@@ -105,6 +105,10 @@ public class EnemySetup : MonoBehaviour, IDamageable
     {
         HandleCollision(other.gameObject);
     }
+    public void ResetMovement()
+    {
+        _enemyMovement.ResetStartPosition();
+    }
 
     private void HandleCollision(GameObject target)
     {
