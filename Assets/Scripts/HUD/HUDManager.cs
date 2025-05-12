@@ -1,13 +1,17 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
-public class HUDManager : MonoBehaviour
+public class HUDManager : MonoBehaviour, IStartable
 {
     [SerializeField] private TMP_Text healthText;
 
     private HealthSystem _healthSystem;
 
-    private void Start()
+    private void Awake()
+    {
+        UpdateManager.Instance.RegisterStartable(this);
+    }
+    public void Initialize()
     {
         _healthSystem = ServiceLocator.Instance.GetService<HealthSystem>();
 
@@ -28,6 +32,7 @@ public class HUDManager : MonoBehaviour
         if (_healthSystem != null)
         {
             _healthSystem.OnHealthChanged -= UpdateHealthUI;
+            UpdateManager.Instance.UnregisterStartable(this);
         }
     }
 }
