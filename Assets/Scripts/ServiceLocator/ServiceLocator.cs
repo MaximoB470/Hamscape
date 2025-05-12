@@ -35,4 +35,11 @@ public class ServiceLocator
     {
         return services.ContainsKey(typeof(T));
     }
+    public void Unregister<T>()
+    {
+        if (services.ContainsKey(typeof(T)))
+        {
+            services.Remove(typeof(T));
+        }
+    }
 }

@@ -8,6 +8,9 @@ public abstract class HealthSystem : IUpdatable
     protected float _currentHealth;
     protected Action _onDeath;
 
+    // Added event for health changes
+    public event Action<float, float> OnHealthChanged;
+
     public HealthSystem(Transform transform, float maxHealth, Action onDeath)
     {
         _transform = transform;
@@ -26,8 +29,15 @@ public abstract class HealthSystem : IUpdatable
 
     public virtual void TakeDamage(float amount)
     {
+        float previousHealth = _currentHealth;
         _currentHealth -= amount;
         _currentHealth = Mathf.Max(0f, _currentHealth);
+
+        // Notify subscribers if health changed
+        if (previousHealth != _currentHealth)
+        {
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
 
         if (_currentHealth <= 0f)
         {
@@ -37,8 +47,15 @@ public abstract class HealthSystem : IUpdatable
 
     public virtual void Heal(float amount)
     {
+        float previousHealth = _currentHealth;
         _currentHealth += amount;
         _currentHealth = Mathf.Min(_maxHealth, _currentHealth);
+
+        // Notify subscribers if health changed
+        if (previousHealth != _currentHealth)
+        {
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
+        }
     }
 
     public float GetCurrentHealth() => _currentHealth;
