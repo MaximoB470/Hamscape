@@ -54,7 +54,6 @@ public class EnemySetup : MonoBehaviour, IDamageable
         UpdateManager.Instance.Unregister(_enemyMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
 
-        // Reutiliza enemigo 
         gameObject.SetActive(false);
         EnemyPool enemyPool = FindObjectOfType<EnemyPool>();
         if (enemyPool != null)
@@ -67,7 +66,6 @@ public class EnemySetup : MonoBehaviour, IDamageable
         UpdateManager.Instance.Unregister(_healthSystem);
     }
 
-    // Para que el jugador pueda dañar al enemigo
     public void TakeDamage(float amount)
     {
         _healthSystem.TakeDamage(amount);
@@ -101,30 +99,29 @@ public class EnemySetup : MonoBehaviour, IDamageable
         }
     }
 
-    // Detección de colisiones con el player - similar a Spike
     private void OnTriggerEnter2D(Collider2D other)
     {
         HandleCollision(other.gameObject);
     }
 
+    public void ResetMovement()
+    {
+        _enemyMovement.ResetStartPosition();
+    }
     private void HandleCollision(GameObject target)
     {
-        // Intentamos obtener el PlayerSetup directamente
-        PlayerSetup playerSetup = target.GetComponent<PlayerSetup>();
-        if (playerSetup != null)
+        IDamageable damageable = target.GetComponent<PlayerSetup>();
+        if (damageable != null)
         {
-            // Intentamos obtener una referencia al PlayerMovement a través del ServiceLocator
             PlayerMovement playerMovement = ServiceLocator.Instance.GetService<PlayerMovement>();
 
-            // Si el jugador está haciendo dash, el enemigo recibe daño
             if (playerMovement != null && playerMovement._isDashing)
             {
                 TakeDamage(damageFromDash);
             }
-            // Si no está haciendo dash o no podemos verificarlo, el jugador recibe daño
             else
             {
-                playerSetup.TakeDamage(damageToPlayer);
+                damageable.TakeDamage(damageToPlayer);
             }
         }
     }

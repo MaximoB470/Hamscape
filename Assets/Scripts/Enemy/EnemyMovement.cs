@@ -77,4 +77,10 @@ public class EnemyMovement : IUpdatable
         currentScale.x *= -1;
         _transform.localScale = currentScale;
     }
+    public void ResetStartPosition()
+    {
+        _startPos = _transform.position;
+        _leftLimit = _startPos - new Vector2(_horizontalDistance, 0);
+        _rightLimit = _startPos + new Vector2(_horizontalDistance, 0);
+    }
 }

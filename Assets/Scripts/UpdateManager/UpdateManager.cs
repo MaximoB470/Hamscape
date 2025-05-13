@@ -19,15 +19,12 @@ public class UpdateManager : MonoBehaviour
         }
     }
 
-    // Lista de objetos actualizables
     private List<IStartable> _startables = new List<IStartable>();
     private List<IUpdatable> _updatables = new List<IUpdatable>();
     private bool _hasInitialized = false;
     
-    // Este es el único Update() permitido en todo el proyecto
     private void Update()
     {
-        // Si no se ha inicializado, ejecuta Initialize() en todos los objetos registrados
         if (!_hasInitialized)
         {
             InitializeAll();
@@ -40,7 +37,6 @@ public class UpdateManager : MonoBehaviour
         }
     }
 
-    // Inicializa todos los objetos registrados como IStartable
     private void InitializeAll()
     {
         for (int i = 0; i < _startables.Count; i++)

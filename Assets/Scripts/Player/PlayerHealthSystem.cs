@@ -6,7 +6,6 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
     private float _damagePerSecond;
     private float _damageTimer;
 
-    // "Move or Die" mecánica
     private float _standingStillDamage;
     private float _timeBeforeDamagingWhenStill;
     private bool _isMoving;
@@ -26,7 +25,6 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
         _regenPerSecond = regenPerSecond;
         _damagePerSecond = damagePerSecond;
         _damageTimer = 0f;
-        // Valores para la mecánica "Move or Die"
         _standingStillDamage = standingStillDamage;
         _timeBeforeDamagingWhenStill = timeBeforeDamagingWhenStill;
         _isMoving = false;

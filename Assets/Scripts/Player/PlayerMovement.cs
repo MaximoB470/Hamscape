@@ -13,15 +13,13 @@ public class PlayerMovement : IUpdatable
     private float _groundCheckRadius;
     private LayerMask _groundLayer;
 
-    // Pre-allocated array for collision checks
     private readonly Collider2D[] _groundHitResults = new Collider2D[1];
 
-    // Acceleration
     private float _acceleration = 10f;
     private float _currentHorizontalSpeed = 0f;
     private float _deceleration = 15f;
 
-    // Dash variables
+
     public bool _isDashing = false;
     private float _dashSpeed = 15f;
     private float _dashDuration = 0.2f;
@@ -30,12 +28,12 @@ public class PlayerMovement : IUpdatable
     private float _dashCooldownTimer = 0f;
     private Vector2 _dashDirection;
 
-    // Input caching
+
     private float _horizontalInput;
     private bool _jumpPressed;
     private bool _dashPressed;
 
-    // Movement detection
+
     private Vector2 _lastPosition;
     private bool _wasMoving;
     private readonly List<IMovementStateObserver> _movementObservers = new List<IMovementStateObserver>();
@@ -90,12 +88,11 @@ public class PlayerMovement : IUpdatable
     {
         GatherInput();
         CheckGroundState();
-        // Handle dash cooldown
         if (_dashCooldownTimer > 0)
         {
             _dashCooldownTimer -= deltaTime;
         }
-        // Handle movement based on state
+
         if (_isDashing)
         {
             HandleDash(deltaTime);
