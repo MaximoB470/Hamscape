@@ -28285,7 +28285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1569296397}
   m_Layer: 6
-  m_Name: GameObject
+  m_Name: Spikes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

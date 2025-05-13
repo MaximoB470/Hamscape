@@ -1,6 +1,4 @@
-﻿
-using UnityEngine;
-
+﻿using UnityEngine;
 public class Spike : MonoBehaviour
 {
     [SerializeField] private float damageAmount = 10f;

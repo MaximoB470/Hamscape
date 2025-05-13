@@ -1,11 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class EnemyPool : ObjectPool<EnemySetup>
+public class EnemyPool : ObjectPool<EnemySetup>, IStartable
 {
-    protected override void Start()
+    private void Awake()
     {
-        base.Start();
+        UpdateManager.Instance.RegisterStartable(this);
+    }
+
+    public override void Initialize()
+    {
+        base.Initialize();
+    }
+
+    private void OnDestroy()
+    {
+        UpdateManager.Instance.UnregisterStartable(this);
     }
 }
