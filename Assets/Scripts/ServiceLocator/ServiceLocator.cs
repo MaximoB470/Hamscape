@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 public class ServiceLocator
 {
     private static ServiceLocator _instance;
@@ -34,5 +33,12 @@ public class ServiceLocator
     public bool IsServiceRegistered<T>()
     {
         return services.ContainsKey(typeof(T));
+    }
+    public void Unregister<T>()
+    {
+        if (services.ContainsKey(typeof(T)))
+        {
+            services.Remove(typeof(T));
+        }
     }
 }

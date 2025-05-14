@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 using System.Collections.Generic;
 
 public class UpdateManager : MonoBehaviour
@@ -19,18 +18,53 @@ public class UpdateManager : MonoBehaviour
         }
     }
 
-    // Lista de objetos actualizables
+    private List<IStartable> _startables = new List<IStartable>();
     private List<IUpdatable> _updatables = new List<IUpdatable>();
-
-    // Este es el único Update() permitido en todo el proyecto
+    private bool _hasInitialized = false;
+    
     private void Update()
     {
+        if (!_hasInitialized)
+        {
+            InitializeAll();
+            _hasInitialized = true;
+        }
+
         for (int i = 0; i < _updatables.Count; i++)
         {
             _updatables[i].Tick(Time.deltaTime);
         }
     }
-    // Registro de objetos actualizables
+
+    private void InitializeAll()
+    {
+        for (int i = 0; i < _startables.Count; i++)
+        {
+            _startables[i].Initialize();
+        }
+    }
+
+    public void RegisterStartable(IStartable startable)
+    {
+        if (!_startables.Contains(startable))
+        {
+            _startables.Add(startable);
+        }
+
+        if (_hasInitialized)
+        {
+            startable.Initialize();
+        }
+    }
+
+    public void UnregisterStartable(IStartable startable)
+    {
+        if (_startables.Contains(startable))
+        {
+            _startables.Remove(startable);
+        }
+    }
+
     public void Register(IUpdatable updatable)
     {
         if (!_updatables.Contains(updatable))
@@ -38,7 +72,7 @@ public class UpdateManager : MonoBehaviour
             _updatables.Add(updatable);
         }
     }
-    // Eliminar registro de objetos actualizables
+
     public void Unregister(IUpdatable updatable)
     {
         if (_updatables.Contains(updatable))

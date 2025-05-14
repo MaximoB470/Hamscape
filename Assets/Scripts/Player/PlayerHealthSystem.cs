@@ -6,38 +6,35 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
     private float _damagePerSecond;
     private float _damageTimer;
 
-    // "Move or Die" mecánica
-    private float _standingStillDamagePerSecond;
+    private float _standingStillDamage;
     private float _timeBeforeDamagingWhenStill;
     private bool _isMoving;
     private float _lastMovementTime;
+    private bool _hasAppliedStillDamage = false;
 
     public PlayerHealthSystem(
-        Transform transform,
-        float maxHealth,
-        float regenPerSecond,
-        float damagePerSecond,
-        float standingStillDamagePerSecond,
-        float timeBeforeDamagingWhenStill,
-        Action onDeath
-    ) : base(transform, maxHealth, onDeath)
+       Transform transform,
+       float maxHealth,
+       float regenPerSecond,
+       float damagePerSecond,
+       float standingStillDamage,
+       float timeBeforeDamagingWhenStill,
+       Action onDeath
+   ) : base(transform, maxHealth, onDeath)
     {
         _regenPerSecond = regenPerSecond;
         _damagePerSecond = damagePerSecond;
         _damageTimer = 0f;
-
-        // Valores para la mecánica "Move or Die"
-        _standingStillDamagePerSecond = standingStillDamagePerSecond;
+        _standingStillDamage = standingStillDamage;
         _timeBeforeDamagingWhenStill = timeBeforeDamagingWhenStill;
         _isMoving = false;
         _lastMovementTime = Time.time;
+        _hasAppliedStillDamage = false;
     }
 
     public override void Tick(float deltaTime)
     {
         base.Tick(deltaTime);
-
-        Heal(_regenPerSecond * deltaTime);
 
         if (_damageTimer > 0)
         {
@@ -52,14 +49,16 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
         if (_isMoving)
         {
             _lastMovementTime = Time.time;
+            _hasAppliedStillDamage = false;
         }
         else
         {
             float timeSinceLastMovement = Time.time - _lastMovementTime;
 
-            if (timeSinceLastMovement > _timeBeforeDamagingWhenStill)
+            if (timeSinceLastMovement > _timeBeforeDamagingWhenStill && !_hasAppliedStillDamage)
             {
-                TakeDamage(_standingStillDamagePerSecond * deltaTime);
+                TakeDamage(_standingStillDamage);
+                _hasAppliedStillDamage = true;
             }
         }
     }

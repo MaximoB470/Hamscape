@@ -1,16 +1,21 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool<T> : MonoBehaviour where T : Component
+public class ObjectPool<T> : MonoBehaviour, IStartable where T : Component
 {
     [SerializeField] private T prefab;
     [SerializeField] private int poolSize = 10;
     private Queue<T> pool = new Queue<T>();
-    protected virtual void Start()
+    private void Awake()
+    {
+        UpdateManager.Instance.RegisterStartable(this);
+    }
+
+    public virtual void Initialize()
     {
         InitializePool();
     }
+
     private void InitializePool()
     {
         for (int i = 0; i < poolSize; i++)
@@ -39,5 +44,9 @@ public class ObjectPool<T> : MonoBehaviour where T : Component
     {
         obj.gameObject.SetActive(false);
         pool.Enqueue(obj);
+    }
+    private void OnDestroy()
+    {
+        UpdateManager.Instance.UnregisterStartable(this);
     }
 }

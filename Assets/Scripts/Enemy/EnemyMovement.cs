@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 public class EnemyMovement : IUpdatable
 {
     private Transform _transform;
@@ -76,5 +73,11 @@ public class EnemyMovement : IUpdatable
         Vector3 currentScale = _transform.localScale;
         currentScale.x *= -1;
         _transform.localScale = currentScale;
+    }
+    public void ResetStartPosition()
+    {
+        _startPos = _transform.position;
+        _leftLimit = _startPos - new Vector2(_horizontalDistance, 0);
+        _rightLimit = _startPos + new Vector2(_horizontalDistance, 0);
     }
 }

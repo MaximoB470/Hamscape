@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerSetup : MonoBehaviour, IDamageable
 {
@@ -53,6 +51,7 @@ public class PlayerSetup : MonoBehaviour, IDamageable
         _playerMovement.RegisterMovementObserver(_healthSystem);
         UpdateManager.Instance.Register(_playerMovement);
         UpdateManager.Instance.Register(_healthSystem);
+        ServiceLocator.Instance.Register<HealthSystem>(_healthSystem);
     }
 
     private void OnPlayerDeath()
@@ -67,6 +66,8 @@ public class PlayerSetup : MonoBehaviour, IDamageable
     {
         UpdateManager.Instance.Unregister(_playerMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
+        ServiceLocator.Instance.Unregister<HealthSystem>();
+        Destroy(gameObject);
     }
 
     public void TakeDamage(float amount)

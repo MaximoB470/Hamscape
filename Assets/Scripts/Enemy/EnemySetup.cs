@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+﻿using UnityEngine;
 public class EnemySetup : MonoBehaviour, IDamageable
 {
     [Header("Health Settings")]
@@ -54,7 +51,6 @@ public class EnemySetup : MonoBehaviour, IDamageable
         UpdateManager.Instance.Unregister(_enemyMovement);
         UpdateManager.Instance.Unregister(_healthSystem);
 
-        // Reutiliza enemigo 
         gameObject.SetActive(false);
         EnemyPool enemyPool = FindObjectOfType<EnemyPool>();
         if (enemyPool != null)
@@ -100,28 +96,29 @@ public class EnemySetup : MonoBehaviour, IDamageable
         }
     }
 
- 
     private void OnTriggerEnter2D(Collider2D other)
     {
         HandleCollision(other.gameObject);
     }
 
+    public void ResetMovement()
+    {
+        _enemyMovement.ResetStartPosition();
+    }
     private void HandleCollision(GameObject target)
     {
-        PlayerSetup playerSetup = target.GetComponent<PlayerSetup>();
-        if (playerSetup != null)
+        IDamageable damageable = target.GetComponent<PlayerSetup>();
+        if (damageable != null)
         {
             PlayerMovement playerMovement = ServiceLocator.Instance.GetService<PlayerMovement>();
 
-            // if player dashing enemy takes damage
             if (playerMovement != null && playerMovement._isDashing)
             {
                 TakeDamage(damageFromDash);
             }
-            // if not player takes damager
             else
             {
-                playerSetup.TakeDamage(damageToPlayer);
+                damageable.TakeDamage(damageToPlayer);
             }
         }
     }
