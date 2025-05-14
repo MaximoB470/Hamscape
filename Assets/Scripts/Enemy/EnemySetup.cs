@@ -52,9 +52,13 @@ public class EnemySetup : MonoBehaviour, IDamageable
         UpdateManager.Instance.Unregister(_healthSystem);
 
         gameObject.SetActive(false);
-        EnemyPool enemyPool = FindObjectOfType<EnemyPool>();
+        EnemyPool enemyPool = ServiceLocator.Instance.GetService<EnemyPool>();
         if (enemyPool != null)
             enemyPool.ReturnToPool(this);
+        else
+        {
+            Debug.LogWarning("EnemyPool not registered in ServiceLocator.");
+        }
     }
 
     private void OnDestroy()
