@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 5385332320927398122}
   - component: {fileID: 6475278558812151350}
   - component: {fileID: 105928931912590560}
-  - component: {fileID: 6415684673090379790}
   m_Layer: 0
   m_Name: Enemyprefab
   m_TagString: Untagged
@@ -205,20 +204,3 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 6
---- !u!114 &6415684673090379790
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2171569569495157581}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ec8e8d17e62f9114f94f71643f273635, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 10
-  moveSpeed: 2
-  horizontalDistance: 3
-  damageToPlayer: 10
-  damageFromDash: 20

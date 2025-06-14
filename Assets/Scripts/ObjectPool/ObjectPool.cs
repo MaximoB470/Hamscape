@@ -1,33 +1,34 @@
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using UnityEngine;
 
-public class ObjectPool<T> : MonoBehaviour, IStartable where T : Component
+
+
+public class ObjectPool : MonoBehaviour, IStartable
 {
-    [SerializeField] private T prefab;
+    [SerializeField] private GameObject prefab;
     [SerializeField] private int poolSize = 10;
-    private Queue<T> pool = new Queue<T>();
-    private void Awake()
+
+    private Queue<GameObject> pool = new Queue<GameObject>();
+
+    protected virtual void Awake()
     {
         UpdateManager.Instance.RegisterStartable(this);
     }
 
     public virtual void Initialize()
     {
-        InitializePool();
-    }
-
-    private void InitializePool()
-    {
         for (int i = 0; i < poolSize; i++)
         {
-            T obj = Instantiate(prefab);
-            obj.gameObject.SetActive(false);
+            GameObject obj = Instantiate(prefab);
+            obj.SetActive(false);
             pool.Enqueue(obj);
         }
     }
-    public T GetFromPool()
+
+    public GameObject GetFromPool()
     {
-        T obj;
+        GameObject obj;
 
         if (pool.Count > 0)
         {
@@ -37,15 +38,18 @@ public class ObjectPool<T> : MonoBehaviour, IStartable where T : Component
         {
             obj = Instantiate(prefab);
         }
-        obj.gameObject.SetActive(true);
+
+        obj.SetActive(true);
         return obj;
     }
-    public void ReturnToPool(T obj)
+
+    public void ReturnToPool(GameObject obj)
     {
-        obj.gameObject.SetActive(false);
+        obj.SetActive(false);
         pool.Enqueue(obj);
     }
-    private void OnDestroy()
+
+    protected virtual void OnDestroy()
     {
         UpdateManager.Instance.UnregisterStartable(this);
     }

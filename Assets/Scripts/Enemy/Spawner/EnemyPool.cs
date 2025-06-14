@@ -1,9 +1,10 @@
-public class EnemyPool : ObjectPool<EnemySetup>, IStartable
+
+public class EnemyPool : ObjectPool
 {
     private void Awake()
     {
         ServiceLocator.Instance.Register<EnemyPool>(this);
-        UpdateManager.Instance.RegisterStartable(this);
+        base.Awake(); 
     }
 
     public override void Initialize()
@@ -14,6 +15,6 @@ public class EnemyPool : ObjectPool<EnemySetup>, IStartable
     private void OnDestroy()
     {
         ServiceLocator.Instance.Unregister<EnemyPool>();
-        UpdateManager.Instance.UnregisterStartable(this);
+        base.OnDestroy();
     }
 }
