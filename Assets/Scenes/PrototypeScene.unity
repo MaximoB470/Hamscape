@@ -24744,7 +24744,7 @@ GameObject:
   - component: {fileID: 1400220516}
   m_Layer: 5
   m_Name: HealthText
-  m_TagString: Untagged
+  m_TagString: HealthText
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32088,7 +32088,7 @@ GameObject:
   - component: {fileID: 2010706566}
   m_Layer: 5
   m_Name: Button
-  m_TagString: Untagged
+  m_TagString: MainMenuButton
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32156,19 +32156,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2010706567}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 946873653}
-        m_TargetAssemblyTypeName: GPbutton, Assembly-CSharp
-        m_MethodName: LoadScene
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2010706567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32421,7 +32409,6 @@ GameObject:
   - component: {fileID: 2110245207}
   - component: {fileID: 2110245206}
   - component: {fileID: 2110245205}
-  - component: {fileID: 2110245204}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -32429,19 +32416,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2110245204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2110245203}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dec9c0914fb3974db01da4e627519dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  healthText: {fileID: 1400220516}
 --- !u!114 &2110245205
 MonoBehaviour:
   m_ObjectHideFlags: 0
