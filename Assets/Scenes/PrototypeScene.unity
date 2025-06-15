@@ -2193,9 +2193,14 @@ MonoBehaviour:
   poolSize: 10
   spawnPoints:
   - {fileID: 1111363427}
-  enemyHealth: 100
-  enemyAttackDamage: 10
-  enemySpeed: 2
+  playerCollider: {fileID: 457561890}
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  defaultHealth: 100
+  defaultSpeed: 2
+  defaultAttackDamage: 10
+  spawnInterval: 2
 --- !u!4 &253851575
 Transform:
   m_ObjectHideFlags: 0
@@ -29437,10 +29442,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2064e4860496d7241bf91ae606468c7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnPoints:
-  - {fileID: 1346730976}
-  - {fileID: 1267544867}
-  _alreadyTriggered: 0
 --- !u!1 &1730589399
 GameObject:
   m_ObjectHideFlags: 0
