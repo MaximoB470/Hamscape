@@ -39,7 +39,8 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
         if (_damageTimer > 0)
         {
             _damageTimer -= deltaTime;
-            TakeDamage(_damagePerSecond * deltaTime);
+            float damageThisFrame = _damagePerSecond * deltaTime;
+            TakeDamage(damageThisFrame);
         }
         HandleMoveOrDieMechanic(deltaTime);
     }
@@ -65,8 +66,25 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
 
     public override void TakeDamage(float amount)
     {
+        // Mostrar texto de daño antes de aplicar el daño
+        if (amount > 0)
+        {
+            // USAR EL SERVICIO EN LUGAR DE LA INSTANCIA DIRECTA
+            UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
+            if (uiManager != null)
+            {
+                uiManager.ShowDamageText(_transform.position, amount, Color.red);
+            }
+            else
+            {
+                // Fallback: usar la instancia directa si el servicio no está disponible
+                UIManager.Instance.ShowDamageText(_transform.position, amount, Color.red);
+            }
+        }
+
         base.TakeDamage(amount);
     }
+
     public void StartTimedDamage(float duration)
     {
         _damageTimer = Mathf.Max(_damageTimer, duration);
