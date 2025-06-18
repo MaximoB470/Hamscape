@@ -312,7 +312,7 @@ GameObject:
   - component: {fileID: 269846332}
   - component: {fileID: 269846331}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: SceneLoader
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -349,6 +349,10 @@ MonoBehaviour:
   _loadingProgressTextTag: LoadingProgressText
   _loadingBarTag: LoadingBar
   _loadingTipTextTag: LoadingTipText
+  _continuePromptTextTag: ContinuePromptText
+  _continueKey: 32
+  _requireInputToContinue: 1
+  _minimumLoadingTime: 1
   _loadingTips:
   - 'Tip: Usa WASD para moverte'
   - 'Tip: Presiona ESC para pausar'
