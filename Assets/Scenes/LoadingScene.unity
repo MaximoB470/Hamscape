@@ -172,7 +172,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.16952515, g: 0, b: 0.16981131, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -301,74 +301,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &269846330
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 269846332}
-  - component: {fileID: 269846331}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &269846331
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 269846330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b101a19f188b3f1478f6a5508a54b9a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _scenes:
-  - sceneName: PrototypeScene
-    sceneReference:
-      m_AssetGUID: 8c9cfa26abfee488c85f1582747f6a02
-      m_SubObjectName: 
-      m_SubObjectType: 
-      m_EditorAssetChanged: 0
-    requiredAssets: []
-  - sceneName: PrototypeScene1
-    sceneReference:
-      m_AssetGUID: 5a9dd6e9303baa64aaf8fdc6a77ec545
-      m_SubObjectName: 
-      m_SubObjectType: 
-      m_EditorAssetChanged: 1
-    requiredAssets: []
-  _loadingSceneName: LoadingScene
-  _loadingProgressTextTag: LoadingProgressText
-  _loadingBarTag: LoadingBar
-  _loadingTipTextTag: LoadingTipText
-  _loadingTips:
-  - 'Tip: Usa WASD para moverte'
-  - 'Tip: Presiona ESC para pausar'
-  - 'Tip: Recoge power-ups para mejorar tus habilidades'
-  - 'Tip: Los enemigos son m?s d?biles por la espalda'
---- !u!4 &269846332
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 269846330}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 565.1919, y: 247.5497, z: -3.5914989}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &610549224
 GameObject:
   m_ObjectHideFlags: 0
@@ -625,9 +557,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'HAMSCAPE
-
-    El gran escape'
+  m_text: Loading
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1154,4 +1084,3 @@ SceneRoots:
   - {fileID: 1881050634801859090}
   - {fileID: 2071021171}
   - {fileID: 610549226}
-  - {fileID: 269846332}

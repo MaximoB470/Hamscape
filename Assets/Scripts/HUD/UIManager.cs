@@ -798,7 +798,17 @@ public class UIManager : MonoBehaviour, IStartable
         if (!string.IsNullOrEmpty(sceneName))
         {
             Time.timeScale = 1f;
-            SceneManager.LoadScene(sceneName);
+
+            // Usar el SceneLoaderManager en lugar de SceneManager directo
+            if (SceneLoaderManager.Instance.IsSceneConfigured(sceneName))
+            {
+                SceneLoaderManager.Instance.LoadScene(sceneName);
+            }
+            else
+            {
+                // Fallback al método original para escenas no configuradas
+                SceneManager.LoadScene(sceneName);
+            }
         }
     }
 
