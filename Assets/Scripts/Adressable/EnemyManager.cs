@@ -10,6 +10,10 @@ public struct EnemyData
     public float attackTimer;
     public float health;
     public float attackDamage;
+    public float maxHealth;
+    public bool hasDealtDamage;
+    public Collider2D triggerCollider; // Collider para detección de daño
+    public Collider2D physicsCollider; // Collider para físicas
 
     public EnemyData(GameObject instance, float speed, Vector2 direction, float health, float attackDamage)
     {
@@ -18,7 +22,22 @@ public struct EnemyData
         this.direction = direction;
         this.attackTimer = 0f;
         this.health = health;
+        this.maxHealth = health;
         this.attackDamage = attackDamage;
+        this.hasDealtDamage = false;
+
+        // Obtener los colliders del prefab
+        Collider2D[] colliders = instance.GetComponents<Collider2D>();
+        this.triggerCollider = null;
+        this.physicsCollider = null;
+
+        foreach (var col in colliders)
+        {
+            if (col.isTrigger)
+                this.triggerCollider = col;
+            else
+                this.physicsCollider = col;
+        }
     }
 }
 
@@ -35,13 +54,19 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
     [SerializeField] private float defaultHealth = 100f;
     [SerializeField] private float defaultSpeed = 2f;
     [SerializeField] private float defaultAttackDamage = 10f;
+    [SerializeField] private float dashDamageToEnemy = 20f;
 
     [Header("Spawn Settings")]
     [SerializeField] private float spawnInterval = 2f;
     private float spawnTimer;
 
+    [Header("Damage Settings")]
+    [SerializeField] private float damageResetTime = 0.5f;
+
     private Queue<GameObject> pool = new();
     private List<EnemyData> activeEnemies = new();
+    private PlayerMovement playerMovement;
+    private IDamageable playerDamageable;
 
     private void Awake()
     {
@@ -49,21 +74,26 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
         UpdateManager.Instance.RegisterStartable(this);
         UpdateManager.Instance.Register(this);
     }
+
     public void Initialize()
     {
+        // Obtener referencias necesarias
+        playerMovement = ServiceLocator.Instance.GetService<PlayerMovement>();
+        playerDamageable = playerCollider.GetComponent<IDamageable>();
+
         for (int i = 0; i < poolSize; i++)
         {
             var obj = Instantiate(enemyPrefab);
             obj.SetActive(false);
             pool.Enqueue(obj);
         }
+
         SpawnEnemy(GetRandomSpawnPoint());
         spawnTimer = spawnInterval;
     }
 
     public void Tick(float deltaTime)
     {
-
         spawnTimer -= deltaTime;
         if (spawnTimer <= 0f)
         {
@@ -71,38 +101,27 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             spawnTimer = spawnInterval;
         }
 
-
         for (int i = activeEnemies.Count - 1; i >= 0; i--)
         {
             EnemyData data = activeEnemies[i];
             Transform enemyTf = data.instance.transform;
 
+            // Movimiento
             enemyTf.Translate(data.direction * data.speed * deltaTime);
 
             bool shouldDie = false;
 
-            Collider2D enemyCol = data.instance.GetComponent<Collider2D>();
-            if (enemyCol != null && playerCollider != null && enemyCol.IsTouching(playerCollider))
-            {
-                Rigidbody2D playerRb = playerCollider.GetComponent<Rigidbody2D>();
-                float playerBottom = playerCollider.bounds.min.y;
-                float enemyTop = enemyCol.bounds.max.y;
+            // Sistema de daño
+            HandleEnemyDamageSystem(ref data, ref shouldDie, deltaTime);
 
-                bool isJumpKill = playerBottom > enemyTop - 0.1f && playerRb.velocity.y < 0f;
-
-                if (isJumpKill)
-                {
-                    playerRb.velocity = new Vector2(playerRb.velocity.x, 8f); // Rebote
-                    shouldDie = true;
-                }
-            }
-
+            // Colisión con paredes
             RaycastHit2D hit = Physics2D.Raycast(enemyTf.position, data.direction, 0.1f, wallLayer);
             if (hit.collider != null)
             {
                 data.direction *= -1f;
             }
 
+            // Muerte del enemigo
             if (data.health <= 0 || shouldDie)
             {
                 DespawnEnemy(data);
@@ -114,11 +133,81 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             }
         }
     }
+
+    private void HandleEnemyDamageSystem(ref EnemyData data, ref bool shouldDie, float deltaTime)
+    {
+        if (data.triggerCollider == null || playerCollider == null) return;
+
+        // Actualizar timer de daño
+        if (data.hasDealtDamage)
+        {
+            data.attackTimer += deltaTime;
+            if (data.attackTimer >= damageResetTime)
+            {
+                data.hasDealtDamage = false;
+                data.attackTimer = 0f;
+            }
+        }
+
+        // Verificar colisión con trigger collider (el más grande)
+        if (data.triggerCollider.IsTouching(playerCollider))
+        {
+            Rigidbody2D playerRb = playerCollider.GetComponent<Rigidbody2D>();
+
+            // 1. Verificar jump kill (prioridad máxima)
+            if (IsJumpKill(playerRb, data.physicsCollider ?? data.triggerCollider, playerCollider))
+            {
+                playerRb.velocity = new Vector2(playerRb.velocity.x, 8f);
+                shouldDie = true;
+                return;
+            }
+
+            // 2. Verificar dash kill
+            if (playerMovement != null && playerMovement._isDashing)
+            {
+                data.health -= dashDamageToEnemy;
+                if (data.health <= 0)
+                {
+                    shouldDie = true;
+                }
+                return;
+            }
+
+            // 3. Daño normal al player
+            if (!data.hasDealtDamage && playerDamageable != null)
+            {
+                playerDamageable.TakeDamage(data.attackDamage);
+                data.hasDealtDamage = true;
+                data.attackTimer = 0f;
+            }
+        }
+        else
+        {
+            // Reset del flag si no están tocándose
+            if (data.hasDealtDamage && data.attackTimer > 0.1f) // Small delay to avoid instant reset
+            {
+                data.hasDealtDamage = false;
+                data.attackTimer = 0f;
+            }
+        }
+    }
+
+    private bool IsJumpKill(Rigidbody2D playerRb, Collider2D enemyCol, Collider2D playerCol)
+    {
+        if (playerRb == null || enemyCol == null) return false;
+
+        float playerBottom = playerCol.bounds.min.y;
+        float enemyTop = enemyCol.bounds.max.y;
+
+        return playerBottom > enemyTop - 0.1f && playerRb.velocity.y < 0f;
+    }
+
     private Vector3 GetRandomSpawnPoint()
     {
         if (spawnPoints.Length == 0) return Vector3.zero;
         return spawnPoints[Random.Range(0, spawnPoints.Length)].position;
     }
+
     public void SpawnEnemy(Vector3 position)
     {
         GameObject obj = pool.Count > 0 ? pool.Dequeue() : Instantiate(enemyPrefab);
@@ -130,6 +219,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
         var data = new EnemyData(obj, defaultSpeed, dir, defaultHealth, defaultAttackDamage);
         activeEnemies.Add(data);
     }
+
     public void DamageEnemy(GameObject enemy, float amount)
     {
         for (int i = 0; i < activeEnemies.Count; i++)
@@ -138,16 +228,32 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             {
                 var data = activeEnemies[i];
                 data.health -= amount;
+                data.health = Mathf.Max(0f, data.health);
                 activeEnemies[i] = data;
                 break;
             }
         }
     }
+
+    public float GetEnemyHealthPercentage(GameObject enemy)
+    {
+        for (int i = 0; i < activeEnemies.Count; i++)
+        {
+            if (activeEnemies[i].instance == enemy)
+            {
+                var data = activeEnemies[i];
+                return data.health / data.maxHealth;
+            }
+        }
+        return 0f;
+    }
+
     private void DespawnEnemy(EnemyData data)
     {
         data.instance.SetActive(false);
         pool.Enqueue(data.instance);
     }
+
     private void OnDestroy()
     {
         UpdateManager.Instance.Unregister(this);
