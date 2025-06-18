@@ -44,12 +44,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 2057678841
+    locked: 0
+  - name: Objects
+    uniqueID: 2163685509
+    locked: 0
   - name: Enemies
     uniqueID: 1321386275
     locked: 0
   - name: Player
     uniqueID: 3936355101
-    locked: 0
-  - name: Effects
-    uniqueID: 2163685509
     locked: 0
