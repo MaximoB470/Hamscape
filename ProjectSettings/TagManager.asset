@@ -40,13 +40,13 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
-    locked: 1
+    locked: 0
   - name: Enemies
     uniqueID: 1321386275
     locked: 0
   - name: Player
     uniqueID: 3936355101
-    locked: 1
+    locked: 0
   - name: Effects
     uniqueID: 2163685509
-    locked: 1
+    locked: 0
