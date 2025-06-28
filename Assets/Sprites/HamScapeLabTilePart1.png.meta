@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 60dc4fcf6e9c6e446bd698be96601108
+guid: cf6b0933193ca8a4d9967ead58841bec
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HamScapeLabTile 1_0
+      name: HamScapeLabTilePart1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -111,14 +111,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 78d23ecd840b2e942b013434b3da13b1
-      internalID: -2034976326
+      spriteID: 5ff2ef7894046244691dd19bdfb4a5c7
+      internalID: 110641803
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HamScapeLabTile 1_1
+      name: HamScapeLabTilePart1_1
       rect:
         serializedVersion: 2
         x: 32
@@ -132,14 +132,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90b4d848e8d6a464e86106d9fe803d08
-      internalID: -1272669166
+      spriteID: 097c9b95c86827142880502779a25dba
+      internalID: -1790670783
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HamScapeLabTile 1_2
+      name: HamScapeLabTilePart1_2
       rect:
         serializedVersion: 2
         x: 64
@@ -153,71 +153,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4a9613f8dc530374f99c11b92835fd54
-      internalID: 806039440
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HamScapeLabTile 1_3
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b9a77ceceafe46446b37ea864de01f2c
-      internalID: -609037093
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HamScapeLabTile 1_4
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e9679a5611a189141b546d72438e5016
-      internalID: -1139267226
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: HamScapeLabTile 1_5
-      rect:
-        serializedVersion: 2
-        x: 160
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 312a995d3558c9545a1541fa5a63d08f
-      internalID: -524310120
+      spriteID: cbef1ada20859aa498244245652a86b6
+      internalID: 1193739621
       vertices: []
       indices: 
       edges: []
@@ -233,12 +170,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      HamScapeLabTile 1_0: -2034976326
-      HamScapeLabTile 1_1: -1272669166
-      HamScapeLabTile 1_2: 806039440
-      HamScapeLabTile 1_3: -609037093
-      HamScapeLabTile 1_4: -1139267226
-      HamScapeLabTile 1_5: -524310120
+      HamScapeLabTilePart1_0: 110641803
+      HamScapeLabTilePart1_1: -1790670783
+      HamScapeLabTilePart1_2: 1193739621
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
