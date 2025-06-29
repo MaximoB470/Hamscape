@@ -231,14 +231,17 @@ MonoBehaviour:
     isStatic: 1
     startActive: 1
     hideWhenInactive: 0
+    autoDisableRaycaster: 1
   - canvasName: DynamicCanvas
     isStatic: 0
     startActive: 1
     hideWhenInactive: 0
+    autoDisableRaycaster: 1
   - canvasName: GameUICanvas
     isStatic: 1
     startActive: 1
     hideWhenInactive: 0
+    autoDisableRaycaster: 1
   _damageTextPool:
     poolName: DamageText
     prefab: {fileID: 5442895170671277851, guid: 2774cc42c754a8d46b825a3fb318667b, type: 3}
@@ -257,9 +260,13 @@ MonoBehaviour:
   - sceneName: MenuScene
     damageTextCanvasName: DynamicCanvas
     popupCanvasName: 
+    staticCanvases: []
+    dynamicCanvases: []
   - sceneName: PrototypeScene
     damageTextCanvasName: DynamicCanvas2
     popupCanvasName: 
+    staticCanvases: []
+    dynamicCanvases: []
 --- !u!4 &127940455
 Transform:
   m_ObjectHideFlags: 0
@@ -390,6 +397,10 @@ PrefabInstance:
     - target: {fileID: 637605045633467100, guid: 4d72b003ec2b6b145981f19b281d28ed, type: 3}
       propertyPath: m_Name
       value: DynamicCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 3988535431419651047, guid: 4d72b003ec2b6b145981f19b281d28ed, type: 3}
+      propertyPath: m_IgnoreReversedGraphics
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7457983320884928872, guid: 4d72b003ec2b6b145981f19b281d28ed, type: 3}
       propertyPath: m_Pivot.x

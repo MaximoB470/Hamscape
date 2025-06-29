@@ -78,7 +78,7 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
             else
             {
                 // Fallback: usar la instancia directa si el servicio no está disponible
-                UIManager.Instance.ShowDamageText(_transform.position, amount, Color.red);
+                Debug.LogWarning("UIManager no encontrado en ServiceLocator");
             }
         }
 

@@ -58,35 +58,35 @@ public class DamageTextTester : MonoBehaviour
         {
             Vector3 mousePos = Input.mousePosition;
             Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 10f));
-            TestDamageTextAtPosition(worldPos);
+            //TestDamageTextAtPosition(worldPos);
         }
     }
 
     public void TestDamageText()
     {
-        TestDamageTextAtPosition(testPosition);
+        //TestDamageTextAtPosition(testPosition);
     }
 
-    public void TestDamageTextAtPosition(Vector3 worldPosition)
-    {
-        if (UIManager.Instance != null)
-        {
-            // Generar da?o aleatorio
-            float damage = Random.Range(10f, damageRange);
+    //public void TestDamageTextAtPosition(Vector3 worldPosition)
+    //{
+    //    if (UIManager.Instance != null)
+    //    {
+    //        Generar da?o aleatorio
+    //        float damage = Random.Range(10f, damageRange);
 
-            // Seleccionar color basado en el da?o
-            Color damageColor = GetDamageColor(damage);
+    //        Seleccionar color basado en el da?o
+    //       Color damageColor = GetDamageColor(damage);
 
-            // Mostrar el texto de da?o
-            UIManager.Instance.ShowDamageText(worldPosition, damage, damageColor);
+    //        Mostrar el texto de da? o
+    //        UIManager.Instance.ShowDamageText(worldPosition, damage, damageColor);
 
-            Debug.Log($"Damage Text mostrado: {damage:F0} en posici?n {worldPosition}");
-        }
-        else
-        {
-            Debug.LogError("UIManager.Instance es null!");
-        }
-    }
+    //        Debug.Log($"Damage Text mostrado: {damage:F0} en posici?n {worldPosition}");
+    //    }
+    //    else
+    //    {
+    //        Debug.LogError("UIManager.Instance es null!");
+    //    }
+    //}
 
     private Color GetDamageColor(float damage)
     {

@@ -1,5 +1,4 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -8,21 +7,6 @@ using System.Collections;
 
 public class UIManager : MonoBehaviour, IStartable
 {
-    private static UIManager _instance;
-    public static UIManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                GameObject go = new GameObject("UIOptimizationManager");
-                _instance = go.AddComponent<UIManager>();
-                DontDestroyOnLoad(go);
-            }
-            return _instance;
-        }
-    }
-
     [Header("Canvas Management")]
     [SerializeField] private List<CanvasInfo> _canvasInfos = new List<CanvasInfo>();
 
@@ -30,7 +14,10 @@ public class UIManager : MonoBehaviour, IStartable
     [SerializeField] private UIPool _damageTextPool;
     [SerializeField] private UIPool _popupPool;
 
-    // Referencias dinámicas que se encuentran en cada escena
+    [Header("Scene Canvas Configuration")]
+    [SerializeField] private List<SceneCanvasConfig> _sceneCanvasConfigs = new List<SceneCanvasConfig>();
+
+    // Referencias dinámicas optimizadas
     private Dictionary<string, Button> _buttons = new Dictionary<string, Button>();
     private Dictionary<string, TextMeshProUGUI> _texts = new Dictionary<string, TextMeshProUGUI>();
     private Dictionary<string, GameObject> _panels = new Dictionary<string, GameObject>();
@@ -38,20 +25,25 @@ public class UIManager : MonoBehaviour, IStartable
     private Dictionary<string, Canvas> _canvases = new Dictionary<string, Canvas>();
     private Dictionary<GameObject, Coroutine> _activeAnimations = new Dictionary<GameObject, Coroutine>();
 
+    // Cache de componentes para evitar GetComponent repetitivos
+    private Dictionary<Canvas, GraphicRaycaster> _canvasRaycastersCache = new Dictionary<Canvas, GraphicRaycaster>();
+    private Dictionary<Canvas, bool> _canvasInteractiveCache = new Dictionary<Canvas, bool>();
+
     private HealthSystem _healthSystem;
     private bool _isPaused = false;
     private bool _hasInitialized = false;
 
-    // NUEVA CONFIGURACIÓN PARA MANEJO AUTOMÁTICO DE CANVAS POR ESCENA
-    [Header("Scene-Specific Canvas Settings")]
-    [SerializeField] private List<SceneCanvasConfig> _sceneCanvasConfigs = new List<SceneCanvasConfig>();
+    // Configuración actual de la escena
+    private SceneCanvasConfig _currentSceneConfig;
 
     [System.Serializable]
     public class SceneCanvasConfig
     {
         public string sceneName;
-        public string damageTextCanvasName = "GameCanvas"; // Nombre del canvas donde van los damage texts
-        public string popupCanvasName = "UICanvas"; // Nombre del canvas donde van los popups
+        public string damageTextCanvasName = "GameCanvas";
+        public string popupCanvasName = "UICanvas";
+        public List<string> staticCanvases = new List<string>();
+        public List<string> dynamicCanvases = new List<string>();
     }
 
     [System.Serializable]
@@ -62,6 +54,8 @@ public class UIManager : MonoBehaviour, IStartable
         public bool startActive;
         [Tooltip("Si es dinámico, se oculta cuando no se usa")]
         public bool hideWhenInactive;
+        [Tooltip("Desactivar raycaster automáticamente si no tiene elementos interactivos")]
+        public bool autoDisableRaycaster = true;
     }
 
     [System.Serializable]
@@ -79,18 +73,10 @@ public class UIManager : MonoBehaviour, IStartable
 
     private void Awake()
     {
-        if (_instance == null)
-        {
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-            UpdateManager.Instance.RegisterStartable(this);
-            ServiceLocator.Instance.Register<UIManager>(this);
-            SceneManager.sceneLoaded += OnSceneLoaded;
-        }
-        else if (_instance != this)
-        {
-            Destroy(gameObject);
-        }
+        // No es singleton, simplemente se registra en el UpdateManager y ServiceLocator
+        UpdateManager.Instance.RegisterStartable(this);
+        ServiceLocator.Instance.Register<UIManager>(this);
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     public void Initialize()
@@ -108,185 +94,264 @@ public class UIManager : MonoBehaviour, IStartable
         }
     }
 
-    private void CleanupActiveAnimations()
-    {
-        // Detener todas las corrutinas activas
-        foreach (var kvp in _activeAnimations)
-        {
-            if (kvp.Value != null)
-            {
-                StopCoroutine(kvp.Value);
-            }
-        }
-        _activeAnimations.Clear();
-
-        // Limpiar objetos activos en pools
-        CleanupPoolObjects();
-    }
-
-    private void CleanupPoolObjects()
-    {
-        // Retornar todos los objetos activos al pool
-        if (_damageTextPool.activeObjects != null)
-        {
-            for (int i = _damageTextPool.activeObjects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = _damageTextPool.activeObjects[i];
-                if (obj != null)
-                {
-                    ReturnPooledObject("DamageText", obj);
-                }
-            }
-        }
-
-        if (_popupPool.activeObjects != null)
-        {
-            for (int i = _popupPool.activeObjects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = _popupPool.activeObjects[i];
-                if (obj != null)
-                {
-                    ReturnPooledObject("Popup", obj);
-                }
-            }
-        }
-    }
-
     private void SetupCurrentScene()
     {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+
+        // Buscar configuración específica de la escena
+        _currentSceneConfig = _sceneCanvasConfigs.Find(config => config.sceneName == currentSceneName);
+
         ClearReferences();
         FindUIElements();
         SetupCanvasOptimization();
-        UpdatePoolParentTransforms(); // NUEVA FUNCIÓN - Actualizar parent transforms según la escena
+        UpdatePoolParentTransforms();
         InitializeUIPools();
         SetupButtonListeners();
         SetupHealthSystem();
     }
 
-    // NUEVA FUNCIÓN: Actualizar parent transforms de los pools según la escena actual
-    private void UpdatePoolParentTransforms()
+    #region Canvas Optimization
+    private void SetupCanvasOptimization()
     {
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        Debug.Log($"Actualizando pools para escena: {currentSceneName}");
-
-        // Listar todos los canvas disponibles para debug
         Canvas[] allCanvases = FindObjectsOfType<Canvas>();
-        Debug.Log($"Canvas encontrados en la escena:");
-        foreach (Canvas c in allCanvases)
+
+        foreach (Canvas canvas in allCanvases)
         {
-            Debug.Log($"  - {c.name} (Activo: {c.gameObject.activeSelf})");
+            string canvasName = canvas.gameObject.name;
+            _canvases[canvasName] = canvas;
+
+            // Obtener configuración del canvas
+            CanvasInfo info = GetCanvasInfo(canvasName);
+            if (info != null)
+            {
+                OptimizeCanvas(canvas, info);
+            }
+        }
+    }
+
+    private CanvasInfo GetCanvasInfo(string canvasName)
+    {
+        // Buscar configuración específica
+        CanvasInfo info = _canvasInfos.Find(c => c.canvasName == canvasName);
+        if (info != null) return info;
+
+        // Usar configuración de escena si está disponible
+        if (_currentSceneConfig != null)
+        {
+            bool isStatic = _currentSceneConfig.staticCanvases.Contains(canvasName);
+            bool isDynamic = _currentSceneConfig.dynamicCanvases.Contains(canvasName);
+
+            if (isStatic || isDynamic)
+            {
+                return new CanvasInfo
+                {
+                    canvasName = canvasName,
+                    isStatic = isStatic,
+                    startActive = true,
+                    hideWhenInactive = isDynamic,
+                    autoDisableRaycaster = true
+                };
+            }
         }
 
-        // Buscar configuración para la escena actual
-        SceneCanvasConfig sceneConfig = _sceneCanvasConfigs.Find(config => config.sceneName == currentSceneName);
+        // Configuración automática basada en nombres comunes
+        return CreateAutoCanvasInfo(canvasName);
+    }
 
-        if (sceneConfig != null)
+    private CanvasInfo CreateAutoCanvasInfo(string canvasName)
+    {
+        string lowerName = canvasName.ToLower();
+
+        bool isStatic = lowerName.Contains("static") ||
+                       lowerName.Contains("background") ||
+                       lowerName.Contains("hud");
+
+        bool hideWhenInactive = lowerName.Contains("popup") ||
+                               lowerName.Contains("dialog") ||
+                               lowerName.Contains("pause");
+
+        return new CanvasInfo
         {
-            Debug.Log($"Configuración encontrada para {currentSceneName}: DamageText->{sceneConfig.damageTextCanvasName}, Popup->{sceneConfig.popupCanvasName}");
-            // Actualizar parent transform del damage text pool
-            UpdatePoolParentTransform(_damageTextPool, sceneConfig.damageTextCanvasName);
+            canvasName = canvasName,
+            isStatic = isStatic,
+            startActive = !hideWhenInactive,
+            hideWhenInactive = hideWhenInactive,
+            autoDisableRaycaster = true
+        };
+    }
 
-            // Actualizar parent transform del popup pool
-            UpdatePoolParentTransform(_popupPool, sceneConfig.popupCanvasName);
+    private void OptimizeCanvas(Canvas canvas, CanvasInfo info)
+    {
+        if (info.isStatic)
+        {
+            // Optimizaciones para canvas estáticos
+            canvas.overrideSorting = false;
+            canvas.pixelPerfect = true;
+
+            // Cachear información de interactividad
+            bool hasInteractiveElements = CacheCanvasInteractivity(canvas);
+
+            // Desactivar raycaster si no tiene elementos interactivos
+            if (info.autoDisableRaycaster && !hasInteractiveElements)
+            {
+                SetCanvasRaycasterEnabled(canvas, false);
+            }
         }
         else
         {
-            Debug.Log($"No se encontró configuración específica para {currentSceneName}, usando configuración automática");
-            // Configuración automática inteligente
-            UpdatePoolParentTransformAuto(_damageTextPool, "DamageText");
-            UpdatePoolParentTransformAuto(_popupPool, "Popup");
+            // Optimizaciones para canvas dinámicos
+            canvas.overrideSorting = true;
+            canvas.pixelPerfect = false;
+        }
+
+        // Configurar estado inicial
+        canvas.gameObject.SetActive(info.startActive);
+
+        if (info.hideWhenInactive && !info.startActive)
+        {
+            HideCanvas(info.canvasName);
+        }
+    }
+
+    private bool CacheCanvasInteractivity(Canvas canvas)
+    {
+        if (_canvasInteractiveCache.ContainsKey(canvas))
+        {
+            return _canvasInteractiveCache[canvas];
+        }
+
+        // Verificar elementos interactivos de manera más eficiente
+        bool hasInteractive = canvas.GetComponentsInChildren<Selectable>().Length > 0;
+        _canvasInteractiveCache[canvas] = hasInteractive;
+
+        return hasInteractive;
+    }
+
+    private void SetCanvasRaycasterEnabled(Canvas canvas, bool enabled)
+    {
+        GraphicRaycaster raycaster = GetCachedRaycaster(canvas);
+        if (raycaster != null)
+        {
+            raycaster.enabled = enabled;
+        }
+    }
+
+    private GraphicRaycaster GetCachedRaycaster(Canvas canvas)
+    {
+        if (_canvasRaycastersCache.ContainsKey(canvas))
+        {
+            return _canvasRaycastersCache[canvas];
+        }
+
+        GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
+        if (raycaster != null)
+        {
+            _canvasRaycastersCache[canvas] = raycaster;
+        }
+
+        return raycaster;
+    }
+
+    public void ShowCanvas(string canvasName)
+    {
+        if (_canvases.TryGetValue(canvasName, out Canvas canvas))
+        {
+            canvas.gameObject.SetActive(true);
+            SetCanvasRaycasterEnabled(canvas, true);
+        }
+    }
+
+    public void HideCanvas(string canvasName)
+    {
+        if (_canvases.TryGetValue(canvasName, out Canvas canvas))
+        {
+            canvas.gameObject.SetActive(false);
+            SetCanvasRaycasterEnabled(canvas, false);
+        }
+    }
+    #endregion
+
+    #region Pool Management
+    private void UpdatePoolParentTransforms()
+    {
+        if (_currentSceneConfig != null)
+        {
+            UpdatePoolParentTransform(_damageTextPool, _currentSceneConfig.damageTextCanvasName);
+            UpdatePoolParentTransform(_popupPool, _currentSceneConfig.popupCanvasName);
+        }
+        else
+        {
+            UpdatePoolParentTransformAuto(_damageTextPool, "damage");
+            UpdatePoolParentTransformAuto(_popupPool, "popup");
         }
     }
 
     private void UpdatePoolParentTransform(UIPool pool, string canvasName)
     {
-        if (pool == null) return;
+        if (pool?.prefab == null) return;
 
-        // Buscar el canvas específico en la escena actual
         Canvas targetCanvas = FindCanvasByName(canvasName);
-
         if (targetCanvas != null)
         {
             pool.parentTransform = targetCanvas.transform;
-            Debug.Log($"✓ Pool '{pool.poolName}' parent transform actualizado a canvas: {canvasName}");
+            ReassignPoolObjectsToNewParent(pool);
         }
         else
         {
-            Debug.LogWarning($"Canvas '{canvasName}' no encontrado para pool '{pool.poolName}'. Intentando configuración automática...");
-            // Usar configuración automática como fallback
+            Debug.LogWarning($"Canvas '{canvasName}' no encontrado para pool '{pool.poolName}'");
             UpdatePoolParentTransformAuto(pool, pool.poolName);
         }
-
-        // Reasignar todos los objetos existentes del pool al nuevo parent
-        ReassignPoolObjectsToNewParent(pool);
     }
 
-    // NUEVA FUNCIÓN: Configuración automática de canvas basada en el tipo de pool
     private void UpdatePoolParentTransformAuto(UIPool pool, string poolType)
     {
-        Canvas targetCanvas = null;
-        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        if (pool?.prefab == null) return;
 
-        // Estrategia de búsqueda basada en el tipo de pool
-        if (poolType.ToLower().Contains("damage"))
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        Canvas targetCanvas = null;
+
+        string lowerPoolType = poolType.ToLower();
+
+        if (lowerPoolType.Contains("damage"))
         {
-            // Para damage text, buscar canvas de juego/gameplay
             targetCanvas = System.Array.Find(canvases, c =>
                 c.name.ToLower().Contains("game") ||
                 c.name.ToLower().Contains("hud") ||
-                c.name.ToLower().Contains("gameplay") ||
                 c.name.ToLower().Contains("world") ||
-                c.name.ToLower().Contains("dynamic") ||
                 c.renderMode == RenderMode.WorldSpace);
         }
-        else if (poolType.ToLower().Contains("popup"))
+        else if (lowerPoolType.Contains("popup"))
         {
-            // Para popups, buscar canvas de UI
             targetCanvas = System.Array.Find(canvases, c =>
                 c.name.ToLower().Contains("ui") ||
                 c.name.ToLower().Contains("menu") ||
-                c.name.ToLower().Contains("interface") ||
                 c.renderMode == RenderMode.ScreenSpaceOverlay);
         }
 
-        // Si no encuentra canvas específico, usar el primero disponible que esté activo
+        // Fallback: usar el primer canvas activo
         if (targetCanvas == null)
         {
             targetCanvas = System.Array.Find(canvases, c => c.gameObject.activeSelf);
         }
 
-        // Último recurso: usar cualquier canvas
-        if (targetCanvas == null && canvases.Length > 0)
-        {
-            targetCanvas = canvases[0];
-        }
-
         if (targetCanvas != null)
         {
             pool.parentTransform = targetCanvas.transform;
-            Debug.Log($"✓ Pool '{pool.poolName}' asignado automáticamente a canvas: {targetCanvas.name}");
+            ReassignPoolObjectsToNewParent(pool);
         }
         else
         {
-            Debug.LogError($"❌ No se encontró ningún canvas disponible para el pool '{pool.poolName}'");
+            Debug.LogError($"No se encontró canvas para el pool '{pool.poolName}'");
         }
     }
 
     private Canvas FindCanvasByName(string canvasName)
     {
-        // Primero buscar en el diccionario de canvas registrados
-        if (_canvases.ContainsKey(canvasName))
+        // Buscar en cache primero
+        if (_canvases.TryGetValue(canvasName, out Canvas cachedCanvas) &&
+            cachedCanvas != null)
         {
-            Canvas cachedCanvas = _canvases[canvasName];
-            if (cachedCanvas != null && cachedCanvas.gameObject != null)
-            {
-                return cachedCanvas;
-            }
-            else
-            {
-                // Limpiar referencia inválida
-                _canvases.Remove(canvasName);
-            }
+            return cachedCanvas;
         }
 
         // Buscar por nombre exacto
@@ -301,19 +366,6 @@ public class UIManager : MonoBehaviour, IStartable
             }
         }
 
-        // Búsqueda más amplia: buscar canvas que contengan el nombre
-        Canvas[] allCanvases = FindObjectsOfType<Canvas>();
-        foreach (Canvas canvas in allCanvases)
-        {
-            if (canvas.name.ToLower().Contains(canvasName.ToLower()) ||
-                canvasName.ToLower().Contains(canvas.name.ToLower()))
-            {
-                _canvases[canvasName] = canvas;
-                Debug.Log($"Canvas encontrado por coincidencia parcial: '{canvas.name}' para búsqueda '{canvasName}'");
-                return canvas;
-            }
-        }
-
         return null;
     }
 
@@ -321,13 +373,13 @@ public class UIManager : MonoBehaviour, IStartable
     {
         if (pool.parentTransform == null) return;
 
-        // Reasignar objetos en la cola
-        GameObject[] pooledObjects = pool.pool.ToArray();
+        // Reasignar objetos en cola
+        var pooledObjects = pool.pool.ToArray();
         foreach (GameObject obj in pooledObjects)
         {
             if (obj != null)
             {
-                obj.transform.SetParent(pool.parentTransform);
+                obj.transform.SetParent(pool.parentTransform, false);
             }
         }
 
@@ -336,128 +388,18 @@ public class UIManager : MonoBehaviour, IStartable
         {
             if (obj != null)
             {
-                obj.transform.SetParent(pool.parentTransform);
+                obj.transform.SetParent(pool.parentTransform, false);
             }
         }
     }
 
-    #region Canvas Optimization
-    private void SetupCanvasOptimization()
-    {
-        // Encontrar todos los Canvas en la escena
-        Canvas[] allCanvases = FindObjectsOfType<Canvas>();
-
-        foreach (Canvas canvas in allCanvases)
-        {
-            string canvasName = canvas.gameObject.name;
-            _canvases[canvasName] = canvas;
-
-            // Buscar configuración para este canvas
-            CanvasInfo info = _canvasInfos.Find(c => c.canvasName == canvasName);
-            if (info != null)
-            {
-                OptimizeCanvas(canvas, info);
-            }
-            else
-            {
-                // Configuración por defecto
-                OptimizeCanvas(canvas, new CanvasInfo
-                {
-                    canvasName = canvasName,
-                    isStatic = false,
-                    startActive = canvas.gameObject.activeSelf,
-                    hideWhenInactive = true
-                });
-            }
-        }
-    }
-
-    private void OptimizeCanvas(Canvas canvas, CanvasInfo info)
-    {
-        // Configurar Canvas según si es estático o dinámico
-        if (info.isStatic)
-        {
-            // Canvas estático - optimizar para elementos que no cambian
-            canvas.overrideSorting = false;
-            canvas.pixelPerfect = true;
-
-            // Desactivar raycaster si no necesita interacción
-            GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
-            if (raycaster != null && !HasInteractiveElements(canvas))
-            {
-                raycaster.enabled = false;
-            }
-        }
-        else
-        {
-            // Canvas dinámico - optimizar para elementos que cambian frecuentemente
-            canvas.overrideSorting = true;
-            canvas.pixelPerfect = false;
-        }
-
-        // Configurar estado inicial
-        canvas.gameObject.SetActive(info.startActive);
-
-        // Si es un canvas que se oculta cuando no está activo
-        if (info.hideWhenInactive && !info.startActive)
-        {
-            HideCanvas(info.canvasName);
-        }
-    }
-
-    private bool HasInteractiveElements(Canvas canvas)
-    {
-        // Verificar si el canvas tiene elementos interactivos
-        Button[] buttons = canvas.GetComponentsInChildren<Button>();
-        Slider[] sliders = canvas.GetComponentsInChildren<Slider>();
-        Toggle[] toggles = canvas.GetComponentsInChildren<Toggle>();
-
-        return buttons.Length > 0 || sliders.Length > 0 || toggles.Length > 0;
-    }
-
-    public void ShowCanvas(string canvasName)
-    {
-        if (_canvases.ContainsKey(canvasName))
-        {
-            Canvas canvas = _canvases[canvasName];
-            canvas.gameObject.SetActive(true);
-
-            // Reactivar raycaster si existe
-            GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
-            if (raycaster != null)
-            {
-                raycaster.enabled = true;
-            }
-        }
-    }
-
-    public void HideCanvas(string canvasName)
-    {
-        if (_canvases.ContainsKey(canvasName))
-        {
-            Canvas canvas = _canvases[canvasName];
-            canvas.gameObject.SetActive(false);
-
-            // Desactivar raycaster para ahorrar rendimiento
-            GraphicRaycaster raycaster = canvas.GetComponent<GraphicRaycaster>();
-            if (raycaster != null)
-            {
-                raycaster.enabled = false;
-            }
-        }
-    }
-    #endregion
-
-    #region UI Object Pooling
     private void InitializeUIPools()
     {
-        // Inicializar pool de texto de daño
         if (_damageTextPool.prefab != null)
         {
             InitializePool(_damageTextPool);
         }
 
-        // Inicializar pool de popups
         if (_popupPool.prefab != null)
         {
             InitializePool(_popupPool);
@@ -466,26 +408,15 @@ public class UIManager : MonoBehaviour, IStartable
 
     private void InitializePool(UIPool pool)
     {
-        // NO limpiar la cola si ya tiene objetos (para mantener objetos existentes al cambiar de escena)
-        if (pool.pool == null)
-            pool.pool = new Queue<GameObject>();
+        pool.pool ??= new Queue<GameObject>();
+        pool.activeObjects ??= new List<GameObject>();
 
-        if (pool.activeObjects == null)
-            pool.activeObjects = new List<GameObject>();
-
-        // Si no hay parent transform, usar configuración por defecto
         if (pool.parentTransform == null)
         {
-            GameObject parent = GameObject.Find(pool.poolName + "_Parent");
-            if (parent == null)
-            {
-                parent = new GameObject(pool.poolName + "_Parent");
-                DontDestroyOnLoad(parent);
-            }
+            GameObject parent = new GameObject(pool.poolName + "_Parent");
             pool.parentTransform = parent.transform;
         }
 
-        // Solo crear objetos nuevos si el pool está vacío
         int currentPoolSize = pool.pool.Count + pool.activeObjects.Count;
         int objectsToCreate = Mathf.Max(0, pool.initialSize - currentPoolSize);
 
@@ -531,13 +462,23 @@ public class UIManager : MonoBehaviour, IStartable
     public void ReturnPooledObject(string poolName, GameObject obj)
     {
         UIPool pool = GetPool(poolName);
-        if (pool == null) return;
+        if (pool == null || obj == null) return;
 
         if (pool.activeObjects.Contains(obj))
         {
             pool.activeObjects.Remove(obj);
             obj.SetActive(false);
             pool.pool.Enqueue(obj);
+
+            // Limpiar animación si existe
+            if (_activeAnimations.ContainsKey(obj))
+            {
+                if (_activeAnimations[obj] != null)
+                {
+                    StopCoroutine(_activeAnimations[obj]);
+                }
+                _activeAnimations.Remove(obj);
+            }
         }
     }
 
@@ -547,105 +488,82 @@ public class UIManager : MonoBehaviour, IStartable
         if (poolName == _popupPool.poolName) return _popupPool;
         return null;
     }
+    #endregion
 
-    // Métodos de conveniencia para usar los pools
+    #region Pool Usage Methods
     public void ShowDamageText(Vector3 worldPosition, float damage, Color color)
     {
         GameObject damageObj = GetPooledObject("DamageText");
-        if (damageObj != null)
+        if (damageObj == null) return;
+
+        TextMeshProUGUI text = damageObj.GetComponent<TextMeshProUGUI>();
+        if (text != null)
         {
-            TextMeshProUGUI text = damageObj.GetComponent<TextMeshProUGUI>();
-            if (text != null)
+            text.text = $"-{damage:F1}";
+            text.color = color;
+
+            // Posicionamiento optimizado
+            SetDamageTextPosition(damageObj, worldPosition);
+
+            // Iniciar animación
+            Coroutine animationCoroutine = StartCoroutine(AnimateDamageText(damageObj));
+            _activeAnimations[damageObj] = animationCoroutine;
+        }
+
+        StartCoroutine(ReturnObjectAfterDelay("DamageText", damageObj, 2f));
+    }
+
+    private void SetDamageTextPosition(GameObject damageObj, Vector3 worldPosition)
+    {
+        Canvas canvas = damageObj.GetComponentInParent<Canvas>();
+        if (canvas?.renderMode == RenderMode.ScreenSpaceOverlay && Camera.main != null)
+        {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPosition);
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvas.transform as RectTransform, screenPos, canvas.worldCamera, out Vector2 localPos))
             {
-                text.text = "-" + damage.ToString("F1");
-                text.color = color;
-
-                // Convertir posición del mundo a UI
-                Canvas canvas = damageObj.GetComponentInParent<Canvas>();
-                if (canvas != null && Camera.main != null)
-                {
-                    Vector2 screenPos = Camera.main.WorldToScreenPoint(worldPosition);
-                    Vector2 localPos;
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        canvas.transform as RectTransform, screenPos, canvas.worldCamera, out localPos);
-
-                    localPos += new Vector2(UnityEngine.Random.Range(-20f, 20f), UnityEngine.Random.Range(10f, 30f));
-                    damageObj.transform.localPosition = localPos;
-                }
-                else
-                {
-                    damageObj.transform.position = worldPosition + Vector3.up * 1f;
-                }
-
-                // Iniciar animación con seguimiento
-                Coroutine animationCoroutine = StartCoroutine(AnimateDamageText(damageObj));
-                _activeAnimations[damageObj] = animationCoroutine;
+                localPos += new Vector2(Random.Range(-20f, 20f), Random.Range(10f, 30f));
+                damageObj.transform.localPosition = localPos;
             }
-
-            // Auto-retornar después de un tiempo
-            StartCoroutine(ReturnDamageTextAfterDelay(damageObj, 2f));
+        }
+        else
+        {
+            damageObj.transform.position = worldPosition + Vector3.up;
         }
     }
 
-    // CORRUTINA MEJORADA CON VERIFICACIONES DE REFERENCIAS
     private IEnumerator AnimateDamageText(GameObject damageText)
     {
         if (damageText == null) yield break;
 
-        Vector3 startPos = damageText.transform.localPosition;
+        Transform textTransform = damageText.transform;
+        TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
+
+        if (textTransform == null || textComponent == null) yield break;
+
+        Vector3 startPos = textTransform.localPosition;
         Vector3 endPos = startPos + Vector3.up * 50f;
-
-        TextMeshProUGUI text = damageText.GetComponent<TextMeshProUGUI>();
-        if (text == null) yield break;
-
-        Color startColor = text.color;
+        Color startColor = textComponent.color;
         Color endColor = new Color(startColor.r, startColor.g, startColor.b, 0f);
 
-        float duration = 1.5f;
+        const float duration = 1.5f;
         float elapsed = 0f;
 
-        while (elapsed < duration && damageText != null && text != null)
+        while (elapsed < duration && damageText != null && textComponent != null)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
 
-            // Verificar que los objetos aún existen
-            if (damageText == null || text == null) break;
-
-            // Interpolar posición
-            damageText.transform.localPosition = Vector3.Lerp(startPos, endPos, t);
-
-            // Interpolar color (fade out)
-            text.color = Color.Lerp(startColor, endColor, t);
+            textTransform.localPosition = Vector3.Lerp(startPos, endPos, t);
+            textComponent.color = Color.Lerp(startColor, endColor, t);
 
             yield return null;
         }
 
-        // Limpiar referencia al finalizar
-        if (damageText != null && _activeAnimations.ContainsKey(damageText))
+        // Cleanup
+        if (_activeAnimations.ContainsKey(damageText))
         {
             _activeAnimations.Remove(damageText);
-        }
-    }
-
-    private IEnumerator ReturnDamageTextAfterDelay(GameObject obj, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        // Verificar que el objeto aún existe antes de retornarlo
-        if (obj != null)
-        {
-            ReturnPooledObject("DamageText", obj);
-        }
-    }
-
-    private IEnumerator ReturnPopupAfterDelay(GameObject obj, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (obj != null)
-        {
-            ReturnPooledObject("Popup", obj);
         }
     }
 
@@ -661,168 +579,143 @@ public class UIManager : MonoBehaviour, IStartable
             }
 
             popup.transform.position = position;
-            StartCoroutine(ReturnPopupAfterDelay(popup, 3f));
+            StartCoroutine(ReturnObjectAfterDelay("Popup", popup, 3f));
+        }
+    }
+
+    private IEnumerator ReturnObjectAfterDelay(string poolName, GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (obj != null)
+        {
+            ReturnPooledObject(poolName, obj);
         }
     }
     #endregion
 
-    #region Find and Register Methods (usando TextMeshPro)
+    #region UI Element Management
     private void FindUIElements()
     {
-        // Buscar botones por tag
-        FindAndRegisterButton("PlayButton", () => LoadScene("PrototypeScene"));
-        FindAndRegisterButton("Level1Button", () => LoadScene("Level1"));
-        FindAndRegisterButton("Level2Button", () => LoadScene("Level2"));
-        FindAndRegisterButton("Level3Button", () => LoadScene("Level3"));
-        FindAndRegisterButton("OptionsButton", () => LoadScene("Options"));
-        FindAndRegisterButton("MainMenuButton", () => LoadScene("MenuScene"));
-        FindAndRegisterButton("PauseButton", PauseGame);
-        FindAndRegisterButton("ResumeButton", ResumeGame);
-        FindAndRegisterButton("QuitButton", QuitGame);
-        FindAndRegisterButton("MuteButton", ToggleMute);
+        // Buscar elementos usando tags de manera optimizada
+        var buttonMappings = new Dictionary<string, System.Action>
+        {
+            { "PlayButton", () => LoadScene("PrototypeScene") },
+            { "Level1Button", () => LoadScene("Level1") },
+            { "Level2Button", () => LoadScene("Level2") },
+            { "Level3Button", () => LoadScene("Level3") },
+            { "OptionsButton", () => LoadScene("Options") },
+            { "MainMenuButton", () => LoadScene("MenuScene") },
+            { "PauseButton", PauseGame },
+            { "ResumeButton", ResumeGame },
+            { "QuitButton", QuitGame },
+            { "MuteButton", ToggleMute }
+        };
 
-        // Buscar textos por tag (TextMeshPro)
-        FindAndRegisterText("HealthText");
-        FindAndRegisterText("ScoreText");
-        FindAndRegisterText("LevelText");
+        foreach (var kvp in buttonMappings)
+        {
+            FindAndRegisterButton(kvp.Key, kvp.Value);
+        }
 
-        // Buscar paneles por tag  
-        FindAndRegisterPanel("PausePanel");
-        FindAndRegisterPanel("GameOverPanel");
+        // Textos con TextMeshPro
+        string[] textTags = { "HealthText", "ScoreText", "LevelText" };
+        foreach (string tag in textTags)
+        {
+            FindAndRegisterText(tag);
+        }
 
-        // Buscar sliders por tag
+        // Paneles
+        string[] panelTags = { "PausePanel", "GameOverPanel" };
+        foreach (string tag in panelTags)
+        {
+            FindAndRegisterPanel(tag);
+        }
+
+        // Sliders
         FindAndRegisterSlider("VolumeSlider", SetVolume);
     }
 
-    private void FindAndRegisterButton(string name, System.Action callback)
+    private void FindAndRegisterButton(string tagName, System.Action callback)
     {
-        try
+        GameObject buttonObj = FindGameObjectByTag(tagName);
+        if (buttonObj?.GetComponent<Button>() is Button button)
         {
-            GameObject buttonObj = GameObject.FindGameObjectWithTag(name);
-
-            if (buttonObj != null)
-            {
-                Button button = buttonObj.GetComponent<Button>();
-                if (button != null)
-                {
-                    _buttons[name] = button;
-                    button.onClick.RemoveAllListeners();
-                    button.onClick.AddListener(() => callback());
-                }
-            }
-        }
-        catch (UnityException)
-        {
-            Debug.LogWarning($"Tag '{name}' no encontrado para botón");
+            _buttons[tagName] = button;
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(callback.Invoke);
         }
     }
 
-    private void FindAndRegisterText(string name)
+    private void FindAndRegisterText(string tagName)
     {
-        try
+        GameObject textObj = FindGameObjectByTag(tagName);
+        if (textObj?.GetComponent<TextMeshProUGUI>() is TextMeshProUGUI text)
         {
-            GameObject textObj = GameObject.FindGameObjectWithTag(name);
-
-            if (textObj != null)
-            {
-                // Usar TextMeshProUGUI en lugar de TMP_Text genérico
-                TextMeshProUGUI text = textObj.GetComponent<TextMeshProUGUI>();
-                if (text != null)
-                {
-                    _texts[name] = text;
-                }
-            }
-        }
-        catch (UnityException)
-        {
-            Debug.LogWarning($"Tag '{name}' no encontrado para texto");
+            _texts[tagName] = text;
         }
     }
 
-    private void FindAndRegisterPanel(string name)
+    private void FindAndRegisterPanel(string tagName)
     {
-        try
+        GameObject panel = FindGameObjectByTag(tagName);
+        if (panel != null)
         {
-            GameObject panel = GameObject.FindGameObjectWithTag(name);
-
-            if (panel != null)
-            {
-                _panels[name] = panel;
-            }
-        }
-        catch (UnityException)
-        {
-            Debug.LogWarning($"Tag '{name}' no encontrado para panel");
+            _panels[tagName] = panel;
         }
     }
 
-    private void FindAndRegisterSlider(string name, System.Action<float> callback)
+    private void FindAndRegisterSlider(string tagName, System.Action<float> callback)
+    {
+        GameObject sliderObj = FindGameObjectByTag(tagName);
+        if (sliderObj?.GetComponent<Slider>() is Slider slider)
+        {
+            _sliders[tagName] = slider;
+            slider.onValueChanged.RemoveAllListeners();
+            slider.onValueChanged.AddListener(callback.Invoke);
+        }
+    }
+
+    private GameObject FindGameObjectByTag(string tag)
     {
         try
         {
-            GameObject sliderObj = GameObject.FindGameObjectWithTag(name);
-
-            if (sliderObj != null)
-            {
-                Slider slider = sliderObj.GetComponent<Slider>();
-                if (slider != null)
-                {
-                    _sliders[name] = slider;
-                    slider.onValueChanged.RemoveAllListeners();
-                    slider.onValueChanged.AddListener((float value) => callback(value));
-                }
-            }
+            return GameObject.FindGameObjectWithTag(tag);
         }
         catch (UnityException)
         {
-            Debug.LogWarning($"Tag '{name}' no encontrado para slider");
+            return null;
         }
     }
     #endregion
 
-    #region Getter Methods
-    public Button GetButton(string name) => _buttons.ContainsKey(name) ? _buttons[name] : null;
-    public TextMeshProUGUI GetText(string name) => _texts.ContainsKey(name) ? _texts[name] : null;
-    public GameObject GetPanel(string name) => _panels.ContainsKey(name) ? _panels[name] : null;
-    public Slider GetSlider(string name) => _sliders.ContainsKey(name) ? _sliders[name] : null;
+    #region Getters
+    public Button GetButton(string name) => _buttons.TryGetValue(name, out Button button) ? button : null;
+    public TextMeshProUGUI GetText(string name) => _texts.TryGetValue(name, out TextMeshProUGUI text) ? text : null;
+    public GameObject GetPanel(string name) => _panels.TryGetValue(name, out GameObject panel) ? panel : null;
+    public Slider GetSlider(string name) => _sliders.TryGetValue(name, out Slider slider) ? slider : null;
     #endregion
 
+    #region Game Flow & Scene Management
     private void SetupButtonListeners()
     {
-        // Los listeners ya se configuran en FindAndRegisterButton
+        // Los listeners se configuran en FindAndRegisterButton
     }
 
-    #region Scene Management
     private void LoadScene(string sceneName)
     {
-        if (!string.IsNullOrEmpty(sceneName))
-        {
-            Time.timeScale = 1f;
+        if (string.IsNullOrEmpty(sceneName)) return;
 
-            // Usar el SceneLoaderManager en lugar de SceneManager directo
-            if (SceneLoaderManager.Instance.IsSceneConfigured(sceneName))
-            {
-                SceneLoaderManager.Instance.LoadScene(sceneName);
-            }
-            else
-            {
-                // Fallback al método original para escenas no configuradas
-                SceneManager.LoadScene(sceneName);
-            }
+        Time.timeScale = 1f;
+
+        if (SceneLoaderManager.Instance.IsSceneConfigured(sceneName))
+        {
+            SceneLoaderManager.Instance.LoadScene(sceneName);
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
         }
     }
 
-    private void QuitGame()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-    }
-    #endregion
-
-    #region Game Flow
     private void PauseGame()
     {
         _isPaused = true;
@@ -837,14 +730,21 @@ public class UIManager : MonoBehaviour, IStartable
         HideCanvas("PauseCanvas");
     }
 
+    private void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (_isPaused)
-                ResumeGame();
-            else
-                PauseGame();
+            if (_isPaused) ResumeGame();
+            else PauseGame();
         }
     }
     #endregion
@@ -875,7 +775,7 @@ public class UIManager : MonoBehaviour, IStartable
     }
     #endregion
 
-    #region Audio Controls
+    #region Audio
     private void ToggleMute()
     {
         AudioListener.pause = !AudioListener.pause;
@@ -889,30 +789,68 @@ public class UIManager : MonoBehaviour, IStartable
     #endregion
 
     #region Cleanup
+    private void CleanupActiveAnimations()
+    {
+        foreach (var kvp in _activeAnimations)
+        {
+            if (kvp.Value != null)
+            {
+                StopCoroutine(kvp.Value);
+            }
+        }
+        _activeAnimations.Clear();
+        CleanupPoolObjects();
+    }
+
+    private void CleanupPoolObjects()
+    {
+        CleanupPool(_damageTextPool, "DamageText");
+        CleanupPool(_popupPool, "Popup");
+    }
+
+    private void CleanupPool(UIPool pool, string poolName)
+    {
+        if (pool?.activeObjects == null) return;
+
+        for (int i = pool.activeObjects.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = pool.activeObjects[i];
+            if (obj != null)
+            {
+                ReturnPooledObject(poolName, obj);
+            }
+        }
+    }
+
     private void ClearReferences()
     {
+        // Limpiar listeners
         foreach (var button in _buttons.Values)
         {
-            if (button != null)
-                button.onClick.RemoveAllListeners();
+            if (button != null) button.onClick.RemoveAllListeners();
         }
 
         foreach (var slider in _sliders.Values)
         {
-            if (slider != null)
-                slider.onValueChanged.RemoveAllListeners();
+            if (slider != null) slider.onValueChanged.RemoveAllListeners();
         }
 
+        // Limpiar diccionarios
         _buttons.Clear();
         _texts.Clear();
         _panels.Clear();
         _sliders.Clear();
         _canvases.Clear();
+
+        // Limpiar caches
+        _canvasRaycastersCache.Clear();
+        _canvasInteractiveCache.Clear();
     }
 
     private void OnDestroy()
     {
         CleanupActiveAnimations();
+
         if (_healthSystem != null)
         {
             _healthSystem.OnHealthChanged -= UpdateHealthUI;
