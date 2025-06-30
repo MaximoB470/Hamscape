@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 2060079607}
-  poolSize: 10
+  spawnAmount: 1
   spawnPoints:
   - {fileID: 1111363427}
   playerCollider: {fileID: 457561890}
@@ -231,7 +231,6 @@ MonoBehaviour:
   defaultSpeed: 2
   defaultAttackDamage: 10
   dashDamageToEnemy: 20
-  spawnInterval: 2
   damageResetTime: 0.5
 --- !u!4 &253851575
 Transform:
@@ -14146,6 +14145,10 @@ PrefabInstance:
     - target: {fileID: 2171569569495157581, guid: 39f0970f7f79dec48870438205c8c243, type: 3}
       propertyPath: m_Name
       value: EnemyPrefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 2171569569495157581, guid: 39f0970f7f79dec48870438205c8c243, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
