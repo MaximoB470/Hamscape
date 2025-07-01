@@ -17,8 +17,18 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 4e810eea96ddd1640a6706ba3bbd727c
   m_SerializeEntries:
+  - m_GUID: 0182d795f232c0c41b1046cd8c7926f8
+    m_Address: Assets/Scenes/Level_03.unity
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8c9cfa26abfee488c85f1582747f6a02
-    m_Address: Assets/Scenes/PrototypeScene.unity
+    m_Address: Assets/Scenes/Level_01.unity
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c3944ef6eed4f140a813f4faf1f7202
+    m_Address: Assets/Scenes/Level_02.unity
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

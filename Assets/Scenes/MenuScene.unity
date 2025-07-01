@@ -267,6 +267,7 @@ MonoBehaviour:
     popupCanvasName: 
     staticCanvases: []
     dynamicCanvases: []
+  _nextLevelName: 
 --- !u!4 &127940455
 Transform:
   m_ObjectHideFlags: 0
@@ -1184,6 +1185,22 @@ PrefabInstance:
     - target: {fileID: 5413599096336438620, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
       propertyPath: m_Name
       value: SceneLoader
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[0].sceneName
+      value: Level_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneName
+      value: Level_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneReference.m_AssetGUID
+      value: 9c3944ef6eed4f140a813f4faf1f7202
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneReference.m_EditorAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

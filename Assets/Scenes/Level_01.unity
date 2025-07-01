@@ -648,6 +648,38 @@ PrefabInstance:
       propertyPath: m_Name
       value: SceneLoader
       objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[0].sceneName
+      value: Level_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneName
+      value: Level_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[2].sceneName
+      value: Level_03
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[0].requiredAssets.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneReference.m_AssetGUID
+      value: 9c3944ef6eed4f140a813f4faf1f7202
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[2].sceneReference.m_AssetGUID
+      value: 0182d795f232c0c41b1046cd8c7926f8
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[1].sceneReference.m_EditorAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1083,7 +1115,7 @@ MonoBehaviour:
     dynamicCanvases:
     - DefeatCanvas
     - VictoryCanvas
-  _nextLevelName: 
+  _nextLevelName: Level_02
 --- !u!4 &441397665
 Transform:
   m_ObjectHideFlags: 0
@@ -1275,7 +1307,7 @@ MonoBehaviour:
   groundCheckRadius: 0.2
   acceleration: 10
   deceleration: 9.5
-  maxLife: 10
+  maxLife: 100
   regenPerSecond: 5
   damagePerSecond: 10
   standingStillDamagePerSecond: 15

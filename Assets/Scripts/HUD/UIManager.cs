@@ -724,7 +724,7 @@ public class UIManager : MonoBehaviour, IStartable
         // Buscar elementos usando tags de manera optimizada
         var buttonMappings = new Dictionary<string, System.Action>
         {
-            { "PlayButton", () => LoadScene("PrototypeScene") },
+            { "PlayButton", () => LoadScene("Level_01") },
             { "Level1Button", () => LoadScene("Level1") },
             { "Level2Button", () => LoadScene("Level2") },
             { "Level3Button", () => LoadScene("Level3") },
@@ -834,8 +834,8 @@ public class UIManager : MonoBehaviour, IStartable
     {
         switch (currentLevel)
         {
-            case "PrototypeScene": return "PrototypeScene 1";
-            case "PrototypeScene 1": return "Level_03";
+            case "Level_01": return "Level_02";
+            case "Level_02": return "Level_03";
             case "Level_03": return null; // Último nivel, no hay siguiente
             default: return null;
         }

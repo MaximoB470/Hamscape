@@ -7,7 +7,11 @@ public class WinTrigger : MonoBehaviour
         PlayerSetup playerSetup = other.GetComponent<PlayerSetup>();
         if (playerSetup != null)
         {
-            Debug.Log("¡Ganaste!");
+            UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
+            if (uiManager != null)
+            {
+                uiManager.ShowVictoryCanvas();
+            }
         }
     }
 }
