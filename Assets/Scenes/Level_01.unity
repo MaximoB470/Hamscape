@@ -1604,7 +1604,7 @@ GameObject:
   - component: {fileID: 624334380}
   - component: {fileID: 624334379}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: GridBlock
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16656,7 +16656,7 @@ GameObject:
   - component: {fileID: 1187515487}
   - component: {fileID: 1187515486}
   m_Layer: 0
-  m_Name: Grid
+  m_Name: GridSpike
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
