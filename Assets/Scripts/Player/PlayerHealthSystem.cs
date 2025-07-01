@@ -69,7 +69,6 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
         // Mostrar texto de daño antes de aplicar el daño
         if (amount > 0)
         {
-            // USAR EL SERVICIO EN LUGAR DE LA INSTANCIA DIRECTA
             UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
             if (uiManager != null)
             {
@@ -77,12 +76,21 @@ public class PlayerHealthSystem : HealthSystem, IDamageable, IMovementStateObser
             }
             else
             {
-                // Fallback: usar la instancia directa si el servicio no está disponible
                 Debug.LogWarning("UIManager no encontrado en ServiceLocator");
             }
         }
 
         base.TakeDamage(amount);
+
+        // Mostrar defeat canvas solo cuando el jugador muere
+        if (_currentHealth <= 0f)
+        {
+            UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
+            if (uiManager != null)
+            {
+                uiManager.ShowDefeatCanvas();
+            }
+        }
     }
 
     public void StartTimedDamage(float duration)

@@ -9,6 +9,10 @@ TagManager:
   - PlayButton
   - RetryButton
   - MenuButtonFromDefeat
+  - VictoryMenuButton
+  - DefeatMenuButton
+  - NextLevelButton
+  - New tag
   layers:
   - Default
   - TransparentFX

@@ -16,7 +16,10 @@ public class UIManager : MonoBehaviour, IStartable
 
     [Header("Scene Canvas Configuration")]
     [SerializeField] private List<SceneCanvasConfig> _sceneCanvasConfigs = new List<SceneCanvasConfig>();
-
+    
+    [Header("Level Management")]
+    [Tooltip("Nombre addressable del próximo nivel (configurado en SceneLoaderManager)")]
+    [SerializeField] private string _nextLevelName;
     // Referencias dinámicas optimizadas
     private Dictionary<string, Button> _buttons = new Dictionary<string, Button>();
     private Dictionary<string, TextMeshProUGUI> _texts = new Dictionary<string, TextMeshProUGUI>();
@@ -102,6 +105,7 @@ public class UIManager : MonoBehaviour, IStartable
         _currentSceneConfig = _sceneCanvasConfigs.Find(config => config.sceneName == currentSceneName);
 
         ClearReferences();
+        ResetGameStateCanvases(); // NUEVO: Resetear canvas de estado de juego
         FindUIElements();
         SetupCanvasOptimization();
         UpdatePoolParentTransforms();
@@ -109,6 +113,56 @@ public class UIManager : MonoBehaviour, IStartable
         SetupButtonListeners();
         SetupHealthSystem();
     }
+
+    #region Game State Canvas Reset
+    private void ResetGameStateCanvases()
+    {
+        // Lista de canvas que necesitan estar disponibles pero ocultos al inicio
+        string[] gameStateCanvases = { "VictoryCanvas", "DefeatCanvas" };
+
+        foreach (string canvasName in gameStateCanvases)
+        {
+            // Buscar primero en todas las escenas (incluyendo inactivos)
+            Canvas[] allCanvases = Resources.FindObjectsOfTypeAll<Canvas>();
+            Canvas targetCanvas = System.Array.Find(allCanvases, c => c.name == canvasName);
+
+            if (targetCanvas == null)
+            {
+                // Fallback: buscar por GameObject
+                GameObject canvasObj = GameObject.Find(canvasName);
+                if (canvasObj != null)
+                {
+                    targetCanvas = canvasObj.GetComponent<Canvas>();
+                }
+            }
+
+            if (targetCanvas != null)
+            {
+                // Activar temporalmente para que sea detectado por el sistema
+                targetCanvas.gameObject.SetActive(true);
+
+                // Asegurar que tiene raycaster habilitado temporalmente
+                GraphicRaycaster raycaster = targetCanvas.GetComponent<GraphicRaycaster>();
+                if (raycaster != null)
+                {
+                    raycaster.enabled = true;
+                }
+
+                // Registrar en el cache ANTES de ocultar
+                _canvases[canvasName] = targetCanvas;
+
+                // Ocultar inmediatamente después de registrar
+                targetCanvas.gameObject.SetActive(false);
+
+                Debug.Log($"Canvas {canvasName} registrado correctamente en el diccionario");
+            }
+            else
+            {
+                Debug.LogError($"Canvas {canvasName} no encontrado en la escena");
+            }
+        }
+    }
+    #endregion
 
     #region Canvas Optimization
     private void SetupCanvasOptimization()
@@ -168,7 +222,9 @@ public class UIManager : MonoBehaviour, IStartable
 
         bool hideWhenInactive = lowerName.Contains("popup") ||
                                lowerName.Contains("dialog") ||
-                               lowerName.Contains("pause");
+                               lowerName.Contains("pause") ||
+                               lowerName.Contains("victory") ||  // NUEVO
+                               lowerName.Contains("defeat");    // NUEVO
 
         return new CanvasInfo
         {
@@ -258,6 +314,11 @@ public class UIManager : MonoBehaviour, IStartable
         {
             canvas.gameObject.SetActive(true);
             SetCanvasRaycasterEnabled(canvas, true);
+            Debug.Log($"Mostrando canvas: {canvasName} con raycaster habilitado");
+        }
+        else
+        {
+            Debug.LogWarning($"Canvas {canvasName} no encontrado en el diccionario");
         }
     }
 
@@ -267,8 +328,67 @@ public class UIManager : MonoBehaviour, IStartable
         {
             canvas.gameObject.SetActive(false);
             SetCanvasRaycasterEnabled(canvas, false);
+            Debug.Log($"Ocultando canvas: {canvasName} con raycaster deshabilitado");
         }
     }
+
+    public void ShowVictoryCanvas()
+    {
+        Time.timeScale = 0f;
+        ShowCanvas("VictoryCanvas");
+        EnableUIControls(true);
+        Debug.Log("Victory canvas mostrado");
+    }
+
+    public void ShowDefeatCanvas()
+    {
+        Time.timeScale = 0f;
+
+        // Verificar que el canvas esté en el diccionario antes de intentar mostrarlo
+        if (!_canvases.ContainsKey("DefeatCanvas"))
+        {
+            Debug.LogError("DefeatCanvas no está registrado. Intentando re-registro...");
+            ResetGameStateCanvases(); // Re-intentar registro
+        }
+
+        ShowCanvas("DefeatCanvas");
+
+        // Asegurar que el raycaster esté habilitado específicamente para DefeatCanvas
+        if (_canvases.TryGetValue("DefeatCanvas", out Canvas canvas))
+        {
+            SetCanvasRaycasterEnabled(canvas, true);
+            Debug.Log("DefeatCanvas raycaster habilitado explícitamente");
+        }
+
+        RegisterRetryButton();
+        EnableUIControls(true);
+        Debug.Log("Defeat canvas mostrado y configurado");
+    }
+
+    private void RegisterRetryButton()
+    {
+        // Buscar el botón aunque no estuviera activo al inicio
+        GameObject retryObj = GameObject.FindGameObjectWithTag("RetryButton");
+        if (retryObj != null && retryObj.TryGetComponent(out Button button))
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(RetryLevel);
+            Debug.Log("RetryButton registrado dinámicamente");
+        }
+        else
+        {
+            Debug.LogError("RetryButton no encontrado!");
+        }
+    }
+
+    private void EnableUIControls(bool enable)
+    {
+        foreach (var canvas in _canvases.Values)
+        {
+            SetCanvasRaycasterEnabled(canvas, enable);
+        }
+    }
+
     #endregion
 
     #region Pool Management
@@ -596,6 +716,11 @@ public class UIManager : MonoBehaviour, IStartable
     #region UI Element Management
     private void FindUIElements()
     {
+        Button[] allButtons = Resources.FindObjectsOfTypeAll<Button>();
+        foreach (Button button in allButtons)
+        {
+            RegisterButtonByTag(button);
+        }
         // Buscar elementos usando tags de manera optimizada
         var buttonMappings = new Dictionary<string, System.Action>
         {
@@ -608,8 +733,13 @@ public class UIManager : MonoBehaviour, IStartable
             { "PauseButton", PauseGame },
             { "ResumeButton", ResumeGame },
             { "QuitButton", QuitGame },
-            { "MuteButton", ToggleMute }
+            { "MuteButton", ToggleMute },
+            { "NextLevelButton", NextLevel },
+        { "RetryButton", RetryLevel },
+        { "VictoryMenuButton", () => LoadScene("MenuScene") },
+        { "DefeatMenuButton", () => LoadScene("MenuScene") }
         };
+
 
         foreach (var kvp in buttonMappings)
         {
@@ -633,16 +763,95 @@ public class UIManager : MonoBehaviour, IStartable
         // Sliders
         FindAndRegisterSlider("VolumeSlider", SetVolume);
     }
+    private void RegisterButtonByTag(Button button)
+    {
+        string tag = button.tag;
+        if (string.IsNullOrEmpty(tag)) return;
 
+        System.Action callback = tag switch
+        {
+            "PlayButton" => () => LoadScene("PrototypeScene"),
+            "Level1Button" => () => LoadScene("Level1"),
+            "Level2Button" => () => LoadScene("Level2"),
+            "Level3Button" => () => LoadScene("Level3"),
+            "OptionsButton" => () => LoadScene("Options"),
+            "MainMenuButton" => () => LoadScene("MenuScene"),
+            "PauseButton" => PauseGame,
+            "ResumeButton" => ResumeGame,
+            "QuitButton" => QuitGame,
+            "MuteButton" => ToggleMute,
+            "NextLevelButton" => NextLevel,
+            "RetryButton" => RetryLevel,
+            "VictoryMenuButton" => () => LoadScene("MenuScene"),
+            "DefeatMenuButton" => () => LoadScene("MenuScene"),
+            _ => null
+        };
+
+        if (callback != null)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(callback.Invoke);
+            _buttons[tag] = button;
+            Debug.Log($"Botón registrado: {tag} en {button.gameObject.name}");
+        }
+    }
+    private void NextLevel()
+    {
+        // Usar el nombre configurado en el inspector si está disponible
+        if (!string.IsNullOrEmpty(_nextLevelName))
+        {
+            Debug.Log($"Cargando próximo nivel configurado: {_nextLevelName}");
+            LoadScene(_nextLevelName);
+        }
+        else
+        {
+            // Fallback a la lógica anterior si no está configurado
+            string currentScene = SceneManager.GetActiveScene().name;
+            string nextLevel = GetNextLevelName(currentScene);
+            Debug.Log($"Cargando próximo nivel automático: {nextLevel}");
+            if (!string.IsNullOrEmpty(nextLevel))
+            {
+                LoadScene(nextLevel);
+            }
+            else
+            {
+                Debug.LogWarning("No se pudo determinar el próximo nivel");
+            }
+        }
+    }
+    private void RetryLevel()
+    {
+        string currentScene = SceneManager.GetActiveScene().name;
+        Debug.Log($"Recargando escena: {currentScene}");
+
+        // Restaurar tiempo antes de recargar
+        Time.timeScale = 1f;
+
+        LoadScene(currentScene);
+    }
+
+    private string GetNextLevelName(string currentLevel)
+    {
+        switch (currentLevel)
+        {
+            case "PrototypeScene": return "PrototypeScene 1";
+            case "PrototypeScene 1": return "Level_03";
+            case "Level_03": return null; // Último nivel, no hay siguiente
+            default: return null;
+        }
+    }
     private void FindAndRegisterButton(string tagName, System.Action callback)
     {
         GameObject buttonObj = FindGameObjectByTag(tagName);
+
         if (buttonObj?.GetComponent<Button>() is Button button)
         {
+            if (button == null) Debug.LogError($"BOTÓN NO ENCONTRADO: {tagName}");
             _buttons[tagName] = button;
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(callback.Invoke);
         }
+
     }
 
     private void FindAndRegisterText(string tagName)
@@ -729,6 +938,7 @@ public class UIManager : MonoBehaviour, IStartable
         Time.timeScale = 1f;
         HideCanvas("PauseCanvas");
     }
+
 
     private void QuitGame()
     {
