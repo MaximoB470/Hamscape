@@ -63,6 +63,8 @@ SpriteAtlas:
     - 1ba3dee314af7ae4eacfeeb3387b7a47: -2002407477
     - be4dfb380400c644b8760663d13db828: 1470133070
     - be4dfb380400c644b8760663d13db828: 467956964
+    - 32457b68f5b5cc648ae42750a40d0f23: 21300000
+    - d1a732fbabc7aee4abd270917d04a786: 21300000
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
   - {fileID: -1790670783, guid: cf6b0933193ca8a4d9967ead58841bec, type: 3}
@@ -78,6 +80,8 @@ SpriteAtlas:
   - {fileID: -2002407477, guid: 1ba3dee314af7ae4eacfeeb3387b7a47, type: 3}
   - {fileID: 1470133070, guid: be4dfb380400c644b8760663d13db828, type: 3}
   - {fileID: 467956964, guid: be4dfb380400c644b8760663d13db828, type: 3}
+  - {fileID: 21300000, guid: 32457b68f5b5cc648ae42750a40d0f23, type: 3}
+  - {fileID: 21300000, guid: d1a732fbabc7aee4abd270917d04a786, type: 3}
   m_PackedSpriteNamesToIndex:
   - HamScapeLabTilePart1_1
   - HamScapeLabTilePart1_0
@@ -92,6 +96,8 @@ SpriteAtlas:
   - HamScapeLabTile_0
   - LabBrickSheet_1
   - LabBrickSheet_0
+  - Fondo_Hamscape_Espacio_2
+  - CaveBackground
   m_RenderDataMap: {}
   m_Tag: LevelLayoutAtlas
   m_IsVariant: 0
