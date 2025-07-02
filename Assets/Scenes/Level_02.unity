@@ -6084,6 +6084,10 @@ PrefabInstance:
       value: EnemyPrefab
       objectReference: {fileID: 0}
     - target: {fileID: 2171569569495157581, guid: 39f0970f7f79dec48870438205c8c243, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 2171569569495157581, guid: 39f0970f7f79dec48870438205c8c243, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -7786,7 +7790,7 @@ GameObject:
   - component: {fileID: 1301198417}
   - component: {fileID: 1301198419}
   - component: {fileID: 1301198418}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TilemapBlack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
