@@ -46,7 +46,6 @@ SpriteAtlas:
     variantMultiplier: 1
     packables:
     - {fileID: 102900000, guid: 42216f1aea1005c4aa3056cdb707fe9c, type: 3}
-    - {fileID: 21300000, guid: c86cd2835f9395940b30fec57d6c779b, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -54,7 +53,6 @@ SpriteAtlas:
     - 778f115130b96a54abdd77714cf2c1e6: 21300000
     - 892d6f2258e5fb540a069be647c4c32e: 21300000
     - 195ac872a6c8fc746a22f4d455947687: 21300000
-    - c86cd2835f9395940b30fec57d6c779b: 21300000
     - 3f1d69252fa02984ca2c9cad268436cb: 21300000
     - bffc7968311a6a5468e667327173b7f3: 21300000
     - 313eb8db7f3f6754e9eff0c94c405231: 21300000
@@ -68,7 +66,6 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 778f115130b96a54abdd77714cf2c1e6, type: 3}
   - {fileID: 21300000, guid: 892d6f2258e5fb540a069be647c4c32e, type: 3}
   - {fileID: 21300000, guid: 195ac872a6c8fc746a22f4d455947687, type: 3}
-  - {fileID: 21300000, guid: c86cd2835f9395940b30fec57d6c779b, type: 3}
   - {fileID: 21300000, guid: 3f1d69252fa02984ca2c9cad268436cb, type: 3}
   - {fileID: 21300000, guid: bffc7968311a6a5468e667327173b7f3, type: 3}
   - {fileID: 21300000, guid: 313eb8db7f3f6754e9eff0c94c405231, type: 3}
@@ -81,7 +78,6 @@ SpriteAtlas:
   - HPText
   - MenuTitle
   - RetryButton
-  - MenuBackground
   - GameOverText
   - ContinueButton
   - RetryText

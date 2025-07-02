@@ -45,21 +45,21 @@ SpriteAtlas:
     secondaryTextureSettings: {}
     variantMultiplier: 1
     packables:
-    - {fileID: 21300000, guid: b6cd747d8f57e974794ee610a44e9e26, type: 3}
     - {fileID: 21300000, guid: c86cd2835f9395940b30fec57d6c779b, type: 3}
+    - {fileID: 21300000, guid: cc50f7d569b139649896d1accf4a1475, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
     packedSpriteRenderDataKeys:
     - c86cd2835f9395940b30fec57d6c779b: 21300000
-    - b6cd747d8f57e974794ee610a44e9e26: 21300000
+    - cc50f7d569b139649896d1accf4a1475: 21300000
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
   - {fileID: 21300000, guid: c86cd2835f9395940b30fec57d6c779b, type: 3}
-  - {fileID: 21300000, guid: b6cd747d8f57e974794ee610a44e9e26, type: 3}
+  - {fileID: 21300000, guid: cc50f7d569b139649896d1accf4a1475, type: 3}
   m_PackedSpriteNamesToIndex:
   - MenuBackground
-  - LevelCompleteText
+  - LoadingText
   m_RenderDataMap: {}
   m_Tag: LoadingUI
   m_IsVariant: 0
