@@ -980,7 +980,7 @@ public class UIManager : MonoBehaviour, IStartable
         TextMeshProUGUI healthText = GetText("HealthText");
         if (healthText != null)
         {
-            healthText.text = $"HP: {Mathf.RoundToInt(currentHealth)}/{Mathf.RoundToInt(maxHealth)}";
+            healthText.text = $"{Mathf.RoundToInt(currentHealth)}/{Mathf.RoundToInt(maxHealth)}";
         }
     }
     #endregion

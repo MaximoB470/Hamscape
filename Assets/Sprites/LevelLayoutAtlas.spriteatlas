@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LevelLayoutAtlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 1
+      compressionQuality: 50
+      maxTextureSize: 2048
+      textureCompression: 0
+      filterMode: 0
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: DefaultTexturePlatform
+      m_MaxTextureSize: 2048
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: -1
+      m_TextureCompression: 0
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 0
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 4
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 1
+      enableTightPacking: 0
+      enableAlphaDilation: 0
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 68ad3d307241f124aaeea514617d5593, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - cf6b0933193ca8a4d9967ead58841bec: -1790670783
+    - cf6b0933193ca8a4d9967ead58841bec: 110641803
+    - cf6b0933193ca8a4d9967ead58841bec: 1193739621
+    - f9c4e273d281b3d40b76ef59a8d479c9: 1579070976
+    - f9c4e273d281b3d40b76ef59a8d479c9: -1299290829
+    - f9c4e273d281b3d40b76ef59a8d479c9: -603778788
+    - 1ba3dee314af7ae4eacfeeb3387b7a47: -2005538073
+    - 1ba3dee314af7ae4eacfeeb3387b7a47: -2002407477
+    - be4dfb380400c644b8760663d13db828: 1470133070
+    - be4dfb380400c644b8760663d13db828: 467956964
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: -1790670783, guid: cf6b0933193ca8a4d9967ead58841bec, type: 3}
+  - {fileID: 110641803, guid: cf6b0933193ca8a4d9967ead58841bec, type: 3}
+  - {fileID: 1193739621, guid: cf6b0933193ca8a4d9967ead58841bec, type: 3}
+  - {fileID: 1579070976, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
+  - {fileID: -1299290829, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
+  - {fileID: -603778788, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
+  - {fileID: -2005538073, guid: 1ba3dee314af7ae4eacfeeb3387b7a47, type: 3}
+  - {fileID: -2002407477, guid: 1ba3dee314af7ae4eacfeeb3387b7a47, type: 3}
+  - {fileID: 1470133070, guid: be4dfb380400c644b8760663d13db828, type: 3}
+  - {fileID: 467956964, guid: be4dfb380400c644b8760663d13db828, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - HamScapeLabTilePart1_1
+  - HamScapeLabTilePart1_0
+  - HamScapeLabTilePart1_2
+  - HamScapeLabTilePart2_2
+  - HamScapeLabTilePart2_0
+  - HamScapeLabTilePart2_1
+  - HamScapeLabTile_1
+  - HamScapeLabTile_0
+  - LabBrickSheet_1
+  - LabBrickSheet_0
+  m_RenderDataMap: {}
+  m_Tag: LevelLayoutAtlas
+  m_IsVariant: 0
