@@ -60,6 +60,7 @@ public class LevelManager : MonoBehaviour, IStartable, IUpdatable
 
     public void Tick(float deltaTime)
     {
+
         // Manejar timers de respawn para spawn points desocupados
         HandleRespawnTimers(deltaTime);
 
@@ -102,6 +103,17 @@ public class LevelManager : MonoBehaviour, IStartable, IUpdatable
             else
             {
                 activeEnemies[i] = data;
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
+            if (uiManager != null)
+            {
+                // Llamar al método NextLevel del UIManager
+                uiManager.GetType().GetMethod("NextLevel",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance)?.Invoke(uiManager, null);
             }
         }
     }
