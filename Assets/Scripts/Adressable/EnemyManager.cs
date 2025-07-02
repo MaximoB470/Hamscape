@@ -1,6 +1,25 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct SpawnPointData
+{
+    public Transform spawnPoint;
+    public float flipTimer;
+    public float respawnDelay;
+    public bool isOccupied;
+    public float respawnTimer; // Timer interno para el respawn
+
+    public SpawnPointData(Transform point, float timer, float delay)
+    {
+        spawnPoint = point;
+        flipTimer = timer;
+        respawnDelay = delay;
+        isOccupied = false;
+        respawnTimer = 0f;
+    }
+}
+
 public struct EnemyData
 {
     public GameObject instance;
@@ -14,8 +33,10 @@ public struct EnemyData
     public Collider2D triggerCollider;
     public Collider2D physicsCollider;
     public float flipTimer;
+    public float maxFlipTimer; // Timer máximo para resetear
+    public int spawnPointIndex; // Índice del spawnpoint asociado
 
-    public EnemyData(GameObject instance, float speed, Vector2 direction, float health, float attackDamage)
+    public EnemyData(GameObject instance, float speed, Vector2 direction, float health, float attackDamage, float flipTimer, int spawnPointIndex)
     {
         this.instance = instance;
         this.speed = speed;
@@ -25,7 +46,9 @@ public struct EnemyData
         this.maxHealth = health;
         this.attackDamage = attackDamage;
         this.hasDealtDamage = false;
-        this.flipTimer = 1f;
+        this.flipTimer = flipTimer;
+        this.maxFlipTimer = flipTimer;
+        this.spawnPointIndex = spawnPointIndex;
 
         Collider2D[] colliders = instance.GetComponents<Collider2D>();
         this.triggerCollider = null;
@@ -40,13 +63,11 @@ public struct EnemyData
         }
     }
 }
-
 public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
 {
     [Header("Settings")]
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private int spawnAmount = 1;
-    [SerializeField] private Transform[] spawnPoints;
+    [SerializeField] private SpawnPointData[] spawnPointsData;
     [SerializeField] private Collider2D playerCollider;
     [SerializeField] private LayerMask wallLayer;
 
@@ -55,9 +76,12 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
     [SerializeField] private float defaultSpeed = 2f;
     [SerializeField] private float defaultAttackDamage = 10f;
     [SerializeField] private float dashDamageToEnemy = 20f;
-   
+
     [Header("Damage Settings")]
     [SerializeField] private float damageResetTime = 0.5f;
+
+    [Header("Respawn Settings")]
+    [SerializeField] private float globalRespawnDelay = 3f; // Delay global por defecto
 
     private Queue<GameObject> pool = new();
     private List<EnemyData> activeEnemies = new();
@@ -71,34 +95,44 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
         UpdateManager.Instance.RegisterStartable(this);
         UpdateManager.Instance.Register(this);
     }
+
     public void Initialize()
     {
         playerMovement = ServiceLocator.Instance.GetService<PlayerMovement>();
         playerDamageable = playerCollider.GetComponent<IDamageable>();
 
-        for (int i = 0; i < spawnAmount; i++)
+        // Crear pool basado en la cantidad de spawnpoints
+        int poolSize = spawnPointsData.Length;
+        for (int i = 0; i < poolSize; i++)
         {
             var obj = Instantiate(enemyPrefab);
             obj.SetActive(false);
             pool.Enqueue(obj);
         }
 
-        for (int i = 0; i < spawnAmount; i++)
+        // Spawnear un enemigo por cada spawnpoint
+        for (int i = 0; i < spawnPointsData.Length; i++)
         {
-            SpawnEnemy(GetRandomSpawnPoint());
+            SpawnEnemyAtPoint(i);
         }
     }
+
     public void Tick(float deltaTime)
     {
+        // Manejar timers de respawn para spawn points desocupados
+        HandleRespawnTimers(deltaTime);
+
         for (int i = activeEnemies.Count - 1; i >= 0; i--)
         {
             EnemyData data = activeEnemies[i];
             Transform enemyTf = data.instance.transform;
+
+            // Usar el flipTimer específico del spawnpoint
             data.flipTimer -= deltaTime;
             if (data.flipTimer <= 0f)
             {
                 data.direction *= -1f;
-                data.flipTimer = 1f; 
+                data.flipTimer = data.maxFlipTimer; // Resetear con el valor original
             }
 
             enemyTf.Translate(data.direction * data.speed * deltaTime);
@@ -113,14 +147,16 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             if (wallHit != null)
             {
                 data.direction *= -1f;
-                data.flipTimer = 1f; 
+                data.flipTimer = data.maxFlipTimer; // Resetear con el valor original
             }
-
 
             if (data.health <= 0 || shouldDie)
             {
                 DespawnEnemy(data);
                 activeEnemies.RemoveAt(i);
+
+                // Iniciar timer de respawn en lugar de respawnear inmediatamente
+                StartRespawnTimer(data.spawnPointIndex);
             }
             else
             {
@@ -128,6 +164,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             }
         }
     }
+
     private void HandleEnemyDamageSystem(ref EnemyData data, ref bool shouldDie, float deltaTime)
     {
         if (data.triggerCollider == null || playerCollider == null) return;
@@ -179,6 +216,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             }
         }
     }
+
     private bool IsJumpKill(Rigidbody2D playerRb, Collider2D enemyCol, Collider2D playerCol)
     {
         if (playerRb == null || enemyCol == null) return false;
@@ -188,22 +226,94 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
 
         return playerBottom > enemyTop - 0.1f && playerRb.velocity.y < 0f;
     }
-    private Vector3 GetRandomSpawnPoint()
+
+    private void HandleRespawnTimers(float deltaTime)
     {
-        if (spawnPoints.Length == 0) return Vector3.zero;
-        return spawnPoints[Random.Range(0, spawnPoints.Length)].position;
+        for (int i = 0; i < spawnPointsData.Length; i++)
+        {
+            var spawnData = spawnPointsData[i];
+
+            // Si está desocupado y tiene timer activo
+            if (!spawnData.isOccupied && spawnData.respawnTimer > 0f)
+            {
+                spawnData.respawnTimer -= deltaTime;
+
+                // Si el timer llegó a 0, respawnear
+                if (spawnData.respawnTimer <= 0f)
+                {
+                    SpawnEnemyAtPoint(i);
+                }
+
+                spawnPointsData[i] = spawnData;
+            }
+        }
     }
-    public void SpawnEnemy(Vector3 position)
+
+    private void StartRespawnTimer(int spawnPointIndex)
     {
+        if (spawnPointIndex < 0 || spawnPointIndex >= spawnPointsData.Length) return;
+
+        var spawnData = spawnPointsData[spawnPointIndex];
+
+        // Usar el delay específico del spawn point, o el global si es 0
+        float delayToUse = spawnData.respawnDelay > 0f ? spawnData.respawnDelay : globalRespawnDelay;
+        spawnData.respawnTimer = delayToUse;
+
+        spawnPointsData[spawnPointIndex] = spawnData;
+    }
+
+    private void SpawnEnemyAtPoint(int spawnPointIndex)
+    {
+        if (spawnPointIndex < 0 || spawnPointIndex >= spawnPointsData.Length) return;
+
+        var spawnData = spawnPointsData[spawnPointIndex];
+        if (spawnData.isOccupied) return; // Ya hay un enemigo en este punto
+
         GameObject obj = pool.Count > 0 ? pool.Dequeue() : Instantiate(enemyPrefab);
-        obj.transform.position = position;
+        obj.transform.position = spawnData.spawnPoint.position;
         obj.SetActive(true);
 
         Vector2 dir = Random.value > 0.5f ? Vector2.left : Vector2.right;
 
-        var data = new EnemyData(obj, defaultSpeed, dir, defaultHealth, defaultAttackDamage);
+        var data = new EnemyData(obj, defaultSpeed, dir, defaultHealth, defaultAttackDamage, spawnData.flipTimer, spawnPointIndex);
         activeEnemies.Add(data);
+
+        // Marcar el spawnpoint como ocupado
+        spawnData.isOccupied = true;
+        spawnPointsData[spawnPointIndex] = spawnData;
     }
+
+    // Método público para spawning manual (mantiene compatibilidad)
+    public void SpawnEnemy(Vector3 position)
+    {
+        // Buscar el spawnpoint más cercano a la posición dada
+        int closestIndex = GetClosestSpawnPointIndex(position);
+        if (closestIndex >= 0)
+        {
+            SpawnEnemyAtPoint(closestIndex);
+        }
+    }
+
+    private int GetClosestSpawnPointIndex(Vector3 position)
+    {
+        int closestIndex = -1;
+        float closestDistance = float.MaxValue;
+
+        for (int i = 0; i < spawnPointsData.Length; i++)
+        {
+            if (spawnPointsData[i].isOccupied) continue;
+
+            float distance = Vector3.Distance(position, spawnPointsData[i].spawnPoint.position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestIndex = i;
+            }
+        }
+
+        return closestIndex;
+    }
+
     public void DamageEnemy(GameObject enemy, float amount)
     {
         for (int i = 0; i < activeEnemies.Count; i++)
@@ -218,6 +328,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             }
         }
     }
+
     public float GetEnemyHealthPercentage(GameObject enemy)
     {
         for (int i = 0; i < activeEnemies.Count; i++)
@@ -230,11 +341,21 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
         }
         return 0f;
     }
+
     private void DespawnEnemy(EnemyData data)
     {
         data.instance.SetActive(false);
         pool.Enqueue(data.instance);
+
+        // Liberar el spawnpoint
+        if (data.spawnPointIndex >= 0 && data.spawnPointIndex < spawnPointsData.Length)
+        {
+            var spawnData = spawnPointsData[data.spawnPointIndex];
+            spawnData.isOccupied = false;
+            spawnPointsData[data.spawnPointIndex] = spawnData;
+        }
     }
+
     private void OnDestroy()
     {
         UpdateManager.Instance.Unregister(this);
