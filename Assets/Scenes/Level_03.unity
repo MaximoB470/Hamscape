@@ -544,7 +544,7 @@ MonoBehaviour:
   dashDamageToEnemy: 20
   damageResetTime: 0.5
   globalRespawnDelay: 3
-  winTrigger: {fileID: 0}
+  winTrigger: {fileID: 253851576}
   winTriggered: 0
 --- !u!4 &253851575
 Transform:
@@ -959,7 +959,7 @@ Transform:
   m_GameObject: {fileID: 457561883}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -17.89, y: 7.78, z: 0}
+  m_LocalPosition: {x: -17, y: 8, z: 0}
   m_LocalScale: {x: 1.4630744, y: 1.4630744, z: 1.4630744}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1187,7 +1187,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -17.89, y: 7.78, z: -10}
+  m_LocalPosition: {x: -17, y: 8, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12690,7 +12690,7 @@ Transform:
   m_GameObject: {fileID: 1730589399}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -17.89, y: 7.78, z: -10}
+  m_LocalPosition: {x: -17, y: 8, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

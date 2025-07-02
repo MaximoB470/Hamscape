@@ -39,27 +39,10 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
     [SerializeField] private List<SceneData> _scenes = new List<SceneData>();
     [SerializeField] private string _loadingSceneName = "LoadingScene";
 
-    [Header("Loading Screen UI References")]
-    [SerializeField] private string _loadingProgressTextTag = "LoadingProgressText";
-    [SerializeField] private string _loadingBarTag = "LoadingBar";
-    [SerializeField] private string _loadingTipTextTag = "LoadingTipText";
-    [SerializeField] private string _continuePromptTextTag = "ContinuePromptText";
-
     [Header("Input Settings")]
     [SerializeField] private KeyCode _continueKey = KeyCode.Space;
     [SerializeField] private bool _requireInputToContinue = true;
     [SerializeField] private float _minimumLoadingTime = 1f; // Tiempo mínimo en loading screen
-
-    // Loading tips para mostrar durante la carga
-    [Header("Loading Tips")]
-    [SerializeField]
-    private List<string> _loadingTips = new List<string>
-    {
-        "Tip: Usa WASD para moverte",
-        "Tip: Presiona ESC para pausar",
-        "Tip: Recoge power-ups para mejorar tus habilidades",
-        "Tip: Los enemigos son más débiles por la espalda"
-    };
 
     // Estado interno
     private bool _isLoading = false;
@@ -69,12 +52,6 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
     private string _targetSceneName;
     private AsyncOperationHandle<SceneInstance> _currentSceneHandle;
     private List<AsyncOperationHandle> _loadedAssetHandles = new List<AsyncOperationHandle>();
-
-    // Referencias UI de la pantalla de carga
-    private TextMeshProUGUI _progressText;
-    private Slider _progressBar;
-    private TextMeshProUGUI _tipText;
-    private TextMeshProUGUI _continuePromptText;
 
     // Eventos
     public event Action<string> OnSceneLoadStarted;
@@ -116,55 +93,10 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Si estamos en la escena de carga, buscar referencias UI
+        // Si estamos en la escena de carga, configurar estado inicial
         if (scene.name == _loadingSceneName)
         {
-            SetupLoadingScreenUI();
-        }
-    }
-
-    private void SetupLoadingScreenUI()
-    {
-        // Buscar elementos UI de la pantalla de carga por tags
-        _progressText = FindUIElementByTag<TextMeshProUGUI>(_loadingProgressTextTag);
-        _progressBar = FindUIElementByTag<Slider>(_loadingBarTag);
-        _tipText = FindUIElementByTag<TextMeshProUGUI>(_loadingTipTextTag);
-        _continuePromptText = FindUIElementByTag<TextMeshProUGUI>(_continuePromptTextTag);
-
-        // Mostrar tip aleatorio
-        if (_tipText != null && _loadingTips.Count > 0)
-        {
-            string randomTip = _loadingTips[UnityEngine.Random.Range(0, _loadingTips.Count)];
-            _tipText.text = randomTip;
-        }
-
-        // Ocultar prompt de continuar inicialmente
-        if (_continuePromptText != null)
-        {
-            _continuePromptText.gameObject.SetActive(false);
-        }
-
-        // Inicializar progress
-        UpdateLoadingProgress(0f, "Iniciando carga...");
-
-        Debug.Log("=== UI LOADING SCREEN CONFIGURADA ===");
-        Debug.Log($"Progress Text encontrado: {_progressText != null}");
-        Debug.Log($"Progress Bar encontrado: {_progressBar != null}");
-        Debug.Log($"Tip Text encontrado: {_tipText != null}");
-        Debug.Log($"Continue Prompt encontrado: {_continuePromptText != null}");
-    }
-
-    private T FindUIElementByTag<T>(string tag) where T : Component
-    {
-        try
-        {
-            GameObject obj = GameObject.FindGameObjectWithTag(tag);
-            return obj?.GetComponent<T>();
-        }
-        catch (UnityException)
-        {
-            Debug.LogWarning($"No se encontró elemento UI con tag: {tag}");
-            return null;
+            Debug.Log("=== LOADING SCENE CARGADA ===");
         }
     }
 
@@ -191,7 +123,7 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
         SceneData sceneData = _scenes.Find(s => s.sceneName == sceneName);
         if (sceneData == null)
         {
-            Debug.LogError($"❌ No se encontró configuración para la escena: {sceneName}");
+            Debug.LogError($" No se encontró configuración para la escena: {sceneName}");
             Debug.LogError("Escenas disponibles:");
             foreach (var scene in _scenes)
             {
@@ -202,7 +134,7 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
         if (sceneData.sceneReference == null || !sceneData.sceneReference.RuntimeKeyIsValid())
         {
-            Debug.LogError($"❌ AssetReference inválido para la escena: {sceneName}");
+            Debug.LogError($" AssetReference inválido para la escena: {sceneName}");
             Debug.LogError($"AssetReference null: {sceneData.sceneReference == null}");
             if (sceneData.sceneReference != null)
             {
@@ -211,7 +143,7 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
             return;
         }
 
-        Debug.Log($"✅ Configuración válida encontrada para {sceneName}. Iniciando carga...");
+        Debug.Log($"Configuración válida encontrada para {sceneName}. Iniciando carga...");
 
         _targetSceneName = sceneName;
         _isLoading = true;
@@ -253,7 +185,6 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
         // Paso 1: Cargar assets requeridos
         if (sceneData.requiredAssets.Count > 0)
         {
-            UpdateLoadingProgress(0f, "Cargando recursos...");
             Debug.Log("Cargando assets requeridos...");
 
             for (int i = 0; i < sceneData.requiredAssets.Count && !hasError; i++)
@@ -269,17 +200,18 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
                     if (assetHandle.Status == AsyncOperationStatus.Succeeded)
                     {
-                        Debug.Log($"✅ Asset cargado: {assetHandle.Result.name}");
+                        Debug.Log($" Asset cargado: {assetHandle.Result.name}");
                     }
                     else
                     {
-                        Debug.LogError($"❌ Error cargando asset: {assetRef}");
+                        Debug.LogError($" Error cargando asset: {assetRef}");
                         hasError = true;
                     }
                 }
 
                 totalProgress += stepProgress;
-                UpdateLoadingProgress(totalProgress, "Cargando recursos...");
+                Debug.Log($" Progress: {totalProgress * 100:F1}% - Cargando recursos...");
+                OnLoadProgress?.Invoke(totalProgress);
             }
         }
 
@@ -287,7 +219,6 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
         if (!hasError)
         {
             Debug.Log("Iniciando carga de escena principal...");
-            UpdateLoadingProgress(totalProgress, "Cargando escena...");
 
             _currentSceneHandle = sceneData.sceneReference.LoadSceneAsync(LoadSceneMode.Single, false); // false = no activar automáticamente
 
@@ -297,25 +228,26 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
                 float sceneProgress = _currentSceneHandle.PercentComplete;
                 float currentStepProgress = totalProgress + (stepProgress * sceneProgress);
 
-                UpdateLoadingProgress(currentStepProgress, "Cargando escena...");
-                Debug.Log($"Progreso de carga: {currentStepProgress * 100:F1}%");
+                Debug.Log($" Progress: {currentStepProgress * 100:F1}% - Cargando escena...");
+                OnLoadProgress?.Invoke(currentStepProgress);
                 yield return null;
             }
 
             if (_currentSceneHandle.Status == AsyncOperationStatus.Succeeded)
             {
-                Debug.Log($"✅ Escena cargada exitosamente: {sceneData.sceneName}");
+                Debug.Log($"Escena cargada exitosamente: {sceneData.sceneName}");
 
                 // Esperar tiempo mínimo si es necesario
                 float elapsedTime = Time.time - _loadingStartTime;
                 if (elapsedTime < _minimumLoadingTime)
                 {
                     float remainingTime = _minimumLoadingTime - elapsedTime;
-                    UpdateLoadingProgress(1f, $"Carga completada! Esperando {remainingTime:F1}s...");
+                    Debug.Log($" Esperando tiempo mínimo: {remainingTime:F1}s");
                     yield return new WaitForSeconds(remainingTime);
                 }
 
-                UpdateLoadingProgress(1f, "¡Carga completada!");
+                Debug.Log($" Progress: 100% - ¡Carga completada!");
+                OnLoadProgress?.Invoke(1f);
                 _loadingComplete = true;
 
                 // Decidir si esperar input o continuar automáticamente
@@ -331,7 +263,7 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
             }
             else
             {
-                Debug.LogError($"❌ Error cargando escena: {sceneData.sceneName}. Status: {_currentSceneHandle.Status}");
+                Debug.LogError($" Error cargando escena: {sceneData.sceneName}. Status: {_currentSceneHandle.Status}");
                 hasError = true;
             }
         }
@@ -340,7 +272,6 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
         if (hasError)
         {
             Debug.LogError("Error durante la carga, volviendo al menú principal");
-            UpdateLoadingProgress(0f, "Error en la carga");
             yield return new WaitForSeconds(2f);
             SceneManager.LoadScene("MenuScene");
             _isLoading = false;
@@ -349,29 +280,16 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
     private void ShowContinuePrompt()
     {
-        Debug.Log("✅ CARGA COMPLETADA - Esperando input del usuario");
+        Debug.Log($" CARGA COMPLETADA - Esperando input del usuario (Presiona {_continueKey})");
         _waitingForInput = true;
-
-        if (_continuePromptText != null)
-        {
-            _continuePromptText.gameObject.SetActive(true);
-            _continuePromptText.text = $"Presiona {_continueKey} para continuar";
-        }
-
-        UpdateLoadingProgress(1f, "¡Listo! Presiona ESPACIO para continuar");
     }
 
     private void ContinueToTargetScene()
     {
         if (!_loadingComplete || !_waitingForInput) return;
 
-        Debug.Log($"🚀 CONTINUANDO A ESCENA: {_targetSceneName}");
+        Debug.Log($" CONTINUANDO A ESCENA: {_targetSceneName}");
         _waitingForInput = false;
-
-        if (_continuePromptText != null)
-        {
-            _continuePromptText.gameObject.SetActive(false);
-        }
 
         // Activar la escena que ya está cargada
         if (_currentSceneHandle.IsValid())
@@ -381,26 +299,6 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
         OnSceneLoadCompleted?.Invoke(_targetSceneName);
         _isLoading = false;
-    }
-
-    private void UpdateLoadingProgress(float progress, string statusText)
-    {
-        // Actualizar UI
-        if (_progressBar != null)
-        {
-            _progressBar.value = progress;
-        }
-
-        if (_progressText != null)
-        {
-            _progressText.text = $"{statusText} {Mathf.RoundToInt(progress * 100)}%";
-        }
-
-        // Log para debugging
-        Debug.Log($"🔄 Loading Progress: {progress * 100:F1}% - {statusText}");
-
-        // Notificar evento
-        OnLoadProgress?.Invoke(progress);
     }
 
     /// <summary>
@@ -435,7 +333,7 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
             if (scene.sceneReference == null)
             {
-                Debug.LogError($"  ❌ SceneReference es NULL");
+                Debug.LogError($"   SceneReference es NULL");
             }
             else
             {
@@ -444,11 +342,11 @@ public class SceneLoaderManager : MonoBehaviour, IStartable, IUpdatable
 
                 if (scene.sceneReference.RuntimeKeyIsValid())
                 {
-                    Debug.Log($"  ✅ Configuración válida");
+                    Debug.Log($"  Configuración válida");
                 }
                 else
                 {
-                    Debug.LogError($"  ❌ RuntimeKey inválido - verifica que la escena esté marcada como Addressable");
+                    Debug.LogError($"  RuntimeKey inválido - verifica que la escena esté marcada como Addressable");
                 }
             }
 

@@ -5,7 +5,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Collections;
 
-public class UIManager : MonoBehaviour, IStartable
+public class UIManager : MonoBehaviour, IStartable, IUpdatable
 {
     [Header("Canvas Management")]
     [SerializeField] private List<CanvasInfo> _canvasInfos = new List<CanvasInfo>();
@@ -79,6 +79,7 @@ public class UIManager : MonoBehaviour, IStartable
         // No es singleton, simplemente se registra en el UpdateManager y ServiceLocator
         UpdateManager.Instance.RegisterStartable(this);
         ServiceLocator.Instance.Register<UIManager>(this);
+        UpdateManager.Instance.Register(this);
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -949,7 +950,7 @@ public class UIManager : MonoBehaviour, IStartable
 #endif
     }
 
-    private void Update()
+    public void Tick(float deltaTime)
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -1069,6 +1070,7 @@ public class UIManager : MonoBehaviour, IStartable
         UpdateManager.Instance.UnregisterStartable(this);
         ServiceLocator.Instance.Unregister<UIManager>();
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        UpdateManager.Instance.Unregister(this);
         ClearReferences();
     }
     #endregion
