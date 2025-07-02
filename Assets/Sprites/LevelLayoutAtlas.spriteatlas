@@ -56,6 +56,9 @@ SpriteAtlas:
     - f9c4e273d281b3d40b76ef59a8d479c9: 1579070976
     - f9c4e273d281b3d40b76ef59a8d479c9: -1299290829
     - f9c4e273d281b3d40b76ef59a8d479c9: -603778788
+    - e3d6c6b3708edde4d912b751e4d95625: -1788966691
+    - e3d6c6b3708edde4d912b751e4d95625: 704284254
+    - e3d6c6b3708edde4d912b751e4d95625: 716536389
     - 1ba3dee314af7ae4eacfeeb3387b7a47: -2005538073
     - 1ba3dee314af7ae4eacfeeb3387b7a47: -2002407477
     - be4dfb380400c644b8760663d13db828: 1470133070
@@ -68,6 +71,9 @@ SpriteAtlas:
   - {fileID: 1579070976, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
   - {fileID: -1299290829, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
   - {fileID: -603778788, guid: f9c4e273d281b3d40b76ef59a8d479c9, type: 3}
+  - {fileID: -1788966691, guid: e3d6c6b3708edde4d912b751e4d95625, type: 3}
+  - {fileID: 704284254, guid: e3d6c6b3708edde4d912b751e4d95625, type: 3}
+  - {fileID: 716536389, guid: e3d6c6b3708edde4d912b751e4d95625, type: 3}
   - {fileID: -2005538073, guid: 1ba3dee314af7ae4eacfeeb3387b7a47, type: 3}
   - {fileID: -2002407477, guid: 1ba3dee314af7ae4eacfeeb3387b7a47, type: 3}
   - {fileID: 1470133070, guid: be4dfb380400c644b8760663d13db828, type: 3}
@@ -79,6 +85,9 @@ SpriteAtlas:
   - HamScapeLabTilePart2_2
   - HamScapeLabTilePart2_0
   - HamScapeLabTilePart2_1
+  - HamScapeLabTilePart3_2
+  - HamScapeLabTilePart3_1
+  - HamScapeLabTilePart3_0
   - HamScapeLabTile_1
   - HamScapeLabTile_0
   - LabBrickSheet_1
