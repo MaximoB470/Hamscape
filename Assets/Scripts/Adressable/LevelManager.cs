@@ -63,7 +63,7 @@ public struct EnemyData
         }
     }
 }
-public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
+public class LevelManager : MonoBehaviour, IStartable, IUpdatable
 {
     [Header("Settings")]
     [SerializeField] private GameObject enemyPrefab;
@@ -82,6 +82,10 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
 
     [Header("Respawn Settings")]
     [SerializeField] private float globalRespawnDelay = 3f; // Delay global por defecto
+
+    [Header("Win Trigger")]
+    [SerializeField] private Collider2D winTrigger;
+    [SerializeField] private bool winTriggered = false;
 
     private Queue<GameObject> pool = new();
     private List<EnemyData> activeEnemies = new();
@@ -355,11 +359,25 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             spawnPointsData[data.spawnPointIndex] = spawnData;
         }
     }
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (winTriggered) return;
 
+        PlayerSetup playerSetup = other.GetComponent<PlayerSetup>();
+        if (playerSetup != null)
+        {
+            winTriggered = true;
+            UIManager uiManager = ServiceLocator.Instance.GetService<UIManager>();
+            if (uiManager != null)
+            {
+                uiManager.ShowVictoryCanvas();
+            }
+        }
+    }
     private void OnDestroy()
     {
         UpdateManager.Instance.Unregister(this);
         UpdateManager.Instance.UnregisterStartable(this);
-        ServiceLocator.Instance.Unregister<EnemyManager>();
+        ServiceLocator.Instance.Unregister<LevelManager>();
     }
 }
