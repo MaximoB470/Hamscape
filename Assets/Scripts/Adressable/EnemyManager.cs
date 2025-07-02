@@ -25,7 +25,7 @@ public struct EnemyData
         this.maxHealth = health;
         this.attackDamage = attackDamage;
         this.hasDealtDamage = false;
-        this.flipTimer = 10f;
+        this.flipTimer = 1f;
 
         Collider2D[] colliders = instance.GetComponents<Collider2D>();
         this.triggerCollider = null;
@@ -98,7 +98,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             if (data.flipTimer <= 0f)
             {
                 data.direction *= -1f;
-                data.flipTimer = 10f; 
+                data.flipTimer = 1f; 
             }
 
             enemyTf.Translate(data.direction * data.speed * deltaTime);
@@ -113,10 +113,10 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
             if (wallHit != null)
             {
                 data.direction *= -1f;
-                data.flipTimer = 10f; 
+                data.flipTimer = 1f; 
             }
 
-            // Muerte
+
             if (data.health <= 0 || shouldDie)
             {
                 DespawnEnemy(data);

@@ -462,9 +462,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 2060079607}
-  spawnAmount: 1
+  spawnAmount: 2
   spawnPoints:
-  - {fileID: 1111363427}
+  - {fileID: 1346730976}
+  - {fileID: 1267544867}
   playerCollider: {fileID: 457561890}
   wallLayer:
     serializedVersion: 2
@@ -71883,6 +71884,14 @@ PrefabInstance:
     - target: {fileID: 3435140968700932942, guid: 89e74e414d1cc084db1aa63b4c4873e0, type: 3}
       propertyPath: m_Name
       value: UI
+      objectReference: {fileID: 0}
+    - target: {fileID: 6906889356457813745, guid: 89e74e414d1cc084db1aa63b4c4873e0, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.37963867
+      objectReference: {fileID: 0}
+    - target: {fileID: 6906889356457813745, guid: 89e74e414d1cc084db1aa63b4c4873e0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.49987793
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
