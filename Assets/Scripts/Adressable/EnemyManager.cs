@@ -13,6 +13,7 @@ public struct EnemyData
     public bool hasDealtDamage;
     public Collider2D triggerCollider;
     public Collider2D physicsCollider;
+    public float flipTimer;
 
     public EnemyData(GameObject instance, float speed, Vector2 direction, float health, float attackDamage)
     {
@@ -24,6 +25,7 @@ public struct EnemyData
         this.maxHealth = health;
         this.attackDamage = attackDamage;
         this.hasDealtDamage = false;
+        this.flipTimer = 10f;
 
         Collider2D[] colliders = instance.GetComponents<Collider2D>();
         this.triggerCollider = null;
@@ -53,7 +55,7 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
     [SerializeField] private float defaultSpeed = 2f;
     [SerializeField] private float defaultAttackDamage = 10f;
     [SerializeField] private float dashDamageToEnemy = 20f;
-
+   
     [Header("Damage Settings")]
     [SerializeField] private float damageResetTime = 0.5f;
 
@@ -92,6 +94,12 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
         {
             EnemyData data = activeEnemies[i];
             Transform enemyTf = data.instance.transform;
+            data.flipTimer -= deltaTime;
+            if (data.flipTimer <= 0f)
+            {
+                data.direction *= -1f;
+                data.flipTimer = 10f; 
+            }
 
             enemyTf.Translate(data.direction * data.speed * deltaTime);
 
@@ -99,12 +107,16 @@ public class EnemyManager : MonoBehaviour, IStartable, IUpdatable
 
             HandleEnemyDamageSystem(ref data, ref shouldDie, deltaTime);
 
-            RaycastHit2D hit = Physics2D.Raycast(enemyTf.position, data.direction, 0.1f, wallLayer);
-            if (hit.collider != null)
+            Vector2 checkPos = (Vector2)enemyTf.position + data.direction * 0.3f;
+            Collider2D wallHit = Physics2D.OverlapCircle(checkPos, 0.05f, wallLayer);
+
+            if (wallHit != null)
             {
                 data.direction *= -1f;
+                data.flipTimer = 10f; 
             }
 
+            // Muerte
             if (data.health <= 0 || shouldDie)
             {
                 DespawnEnemy(data);
