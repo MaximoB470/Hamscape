@@ -1126,6 +1126,10 @@ PrefabInstance:
       value: SceneLoader
       objectReference: {fileID: 0}
     - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
       propertyPath: _scenes.Array.data[0].sceneName
       value: Level_01
       objectReference: {fileID: 0}
@@ -1134,8 +1138,16 @@ PrefabInstance:
       value: Level_02
       objectReference: {fileID: 0}
     - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[2].sceneName
+      value: Level_03
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
       propertyPath: _scenes.Array.data[1].sceneReference.m_AssetGUID
-      value: 9c3944ef6eed4f140a813f4faf1f7202
+      value: b83604ee36e79ec418abdda61d23740b
+      objectReference: {fileID: 0}
+    - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
+      propertyPath: _scenes.Array.data[2].sceneReference.m_AssetGUID
+      value: bc9ff831e7de23442a3b690276314008
       objectReference: {fileID: 0}
     - target: {fileID: 7932529814059717117, guid: 7de1ced51b12db94182904a8c1206815, type: 3}
       propertyPath: _scenes.Array.data[1].sceneReference.m_EditorAssetChanged
