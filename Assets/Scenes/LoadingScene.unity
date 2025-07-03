@@ -473,51 +473,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4d72b003ec2b6b145981f19b281d28ed, type: 3}
---- !u!1 &1421576969
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1421576971}
-  - component: {fileID: 1421576970}
-  m_Layer: 0
-  m_Name: GPbutton
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1421576970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1421576969}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20bd90eea108c7549a58f1afcd1af782, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sceneName: PrototypeScene
---- !u!4 &1421576971
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1421576969}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.3706155, y: 3.197596, z: 0.016142592}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1553748845
 GameObject:
   m_ObjectHideFlags: 0
@@ -888,18 +843,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scenes: []
   _loadingSceneName: LoadingScene
-  _loadingProgressTextTag: LoadingProgressText
-  _loadingBarTag: LoadingBar
-  _loadingTipTextTag: LoadingTipText
-  _continuePromptTextTag: ContinuePromptText
   _continueKey: 32
   _requireInputToContinue: 1
   _minimumLoadingTime: 1
-  _loadingTips:
-  - 'Tip: Usa WASD para moverte'
-  - 'Tip: Presiona ESC para pausar'
-  - 'Tip: Recoge power-ups para mejorar tus habilidades'
-  - "Tip: Los enemigos son m\xE1s d\xE9biles por la espalda"
 --- !u!4 &2082626451
 Transform:
   m_ObjectHideFlags: 0
@@ -920,7 +866,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 2014335921}
-  - {fileID: 1421576971}
   - {fileID: 219815995}
   - {fileID: 582502008}
   - {fileID: 2071021171}

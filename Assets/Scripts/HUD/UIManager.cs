@@ -157,10 +157,6 @@ public class UIManager : MonoBehaviour, IStartable, IUpdatable
 
                 Debug.Log($"Canvas {canvasName} registrado correctamente en el diccionario");
             }
-            else
-            {
-                Debug.LogError($"Canvas {canvasName} no encontrado en la escena");
-            }
         }
     }
     #endregion
