@@ -71739,7 +71739,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1223491320031955198, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -0.34899902
+      value: -45.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2706501235080781663, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -4.944092
       objectReference: {fileID: 0}
     - target: {fileID: 3324534200456445621, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
       propertyPath: m_Pivot.x
@@ -71821,16 +71825,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4253766527605356505, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
+      propertyPath: m_SortingOrder
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7331274235606988009, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
       propertyPath: m_Name
       value: DefeatCanvas
       objectReference: {fileID: 0}
     - target: {fileID: 7331274235606988009, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4913131657390833553, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
