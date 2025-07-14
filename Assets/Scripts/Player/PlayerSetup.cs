@@ -23,6 +23,10 @@ public class PlayerSetup : MonoBehaviour, IDamageable
     [SerializeField] private float standingStillDamagePerSecond = 15f;
     [SerializeField] private float timeBeforeDamagingWhenStill = 1.5f;
 
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Sprite hamsterRightSprite;
+    [SerializeField] private Sprite hamsterLeftSprite;
+
     private PlayerMovement _playerMovement;
     private PlayerHealthSystem _healthSystem;
     private Rigidbody2D _rb;
@@ -46,7 +50,10 @@ public class PlayerSetup : MonoBehaviour, IDamageable
             jumpForce,
             gravity,
             groundCheckRadius,
-            groundLayer
+            groundLayer,
+            spriteRenderer,
+            hamsterRightSprite,
+            hamsterLeftSprite
         );
         _playerMovement.RegisterMovementObserver(_healthSystem);
         UpdateManager.Instance.Register(_playerMovement);

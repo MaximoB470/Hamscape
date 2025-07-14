@@ -33,6 +33,9 @@ public class PlayerMovement : IUpdatable
     private bool _jumpPressed;
     private bool _dashPressed;
 
+    private SpriteRenderer _spriteRenderer;
+    private Sprite _hamsterRightSprite;
+    private Sprite _hamsterLeftSprite;
 
     private Vector2 _lastPosition;
     private bool _wasMoving;
@@ -41,16 +44,19 @@ public class PlayerMovement : IUpdatable
     private const float MOVEMENT_THRESHOLD = 0.1f;
 
     public PlayerMovement(
-        Rigidbody2D rb,
-        Transform groundCheck,
-        float moveSpeed,
-        float jumpForce,
-        float gravity,
-        float groundCheckRadius,
-        LayerMask groundLayer,
-        float acceleration = 10f,
-        float deceleration = 15f
-    )
+    Rigidbody2D rb,
+    Transform groundCheck,
+    float moveSpeed,
+    float jumpForce,
+    float gravity,
+    float groundCheckRadius,
+    LayerMask groundLayer,
+    SpriteRenderer spriteRenderer,
+    Sprite hamsterRightSprite, 
+    Sprite hamsterLeftSprite, 
+    float acceleration = 10f,
+    float deceleration = 15f
+)
     {
         _rb = rb;
         _groundCheck = groundCheck;
@@ -63,8 +69,14 @@ public class PlayerMovement : IUpdatable
         _deceleration = deceleration;
         _rb.gravityScale = 0f;
         _lastPosition = rb.position;
+
+        _spriteRenderer = spriteRenderer;
+        _hamsterRightSprite = hamsterRightSprite;
+        _hamsterLeftSprite = hamsterLeftSprite;
+
         ServiceLocator.Instance.Register<PlayerMovement>(this);
     }
+
 
     public void RegisterMovementObserver(IMovementStateObserver observer)
     {
@@ -164,6 +176,16 @@ public class PlayerMovement : IUpdatable
         {
             _currentHorizontalSpeed += maxChange * Mathf.Sign(speedDifference);
         }
+
+        if (_currentHorizontalSpeed > 0.01f)
+        {
+            _spriteRenderer.sprite = _hamsterRightSprite;
+        }
+        else if (_currentHorizontalSpeed < -0.01f)
+        {
+            _spriteRenderer.sprite = _hamsterLeftSprite;
+        }
+
 
         if (_isGrounded && _jumpPressed)
         {

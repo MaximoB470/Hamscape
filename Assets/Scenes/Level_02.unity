@@ -901,6 +901,9 @@ MonoBehaviour:
   damagePerSecond: 10
   standingStillDamagePerSecond: 15
   timeBeforeDamagingWhenStill: 1.5
+  spriteRenderer: {fileID: 457561887}
+  hamsterRightSprite: {fileID: 21300000, guid: c3f93d7aaf29e76478b6bc1c92c7c0ac, type: 3}
+  hamsterLeftSprite: {fileID: 21300000, guid: e345b8136a16ae84b981fff0668585f1, type: 3}
 --- !u!50 &457561892
 Rigidbody2D:
   serializedVersion: 4
