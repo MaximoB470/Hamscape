@@ -11,7 +11,19 @@ public class UpdateManager : MonoBehaviour
             if (_instance == null)
             {
                 GameObject go = new GameObject("UpdateManager");
+
+                // Crear el componente
                 _instance = go.AddComponent<UpdateManager>();
+
+                // Crear y configurar AudioSource
+                var audioSource = go.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+
+                _instance.musicSource = audioSource;
+
+                // Cargar el clip desde Resources
+                _instance.musicClip = Resources.Load<AudioClip>("Assets/SceneMusic/NoMoreBugs"); 
+
                 DontDestroyOnLoad(go);
             }
             return _instance;
@@ -21,12 +33,25 @@ public class UpdateManager : MonoBehaviour
     private List<IStartable> _startables = new List<IStartable>();
     private List<IUpdatable> _updatables = new List<IUpdatable>();
     private bool _hasInitialized = false;
-    
+
+    // AGREGADO para el AudioController
+    private AudioController audioController;
+    private AudioSource musicSource;
+    private AudioClip musicClip;
+
     private void Update()
     {
         if (!_hasInitialized)
         {
             InitializeAll();
+
+            // INICIALIZAR MÚSICA
+            if (musicSource != null && musicClip != null)
+            {
+                audioController = new AudioController(musicSource);
+                audioController.PlayMusic(musicClip);
+            }
+
             _hasInitialized = true;
         }
 

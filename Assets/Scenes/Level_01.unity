@@ -15993,7 +15993,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1156058549}
-  - component: {fileID: 1156058548}
   m_Layer: 0
   m_Name: AudioController
   m_TagString: Untagged
@@ -16001,21 +16000,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1156058548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156058547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c96b5a8a801f8f4c91ed641808cc3bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  backgroundMusicSource: {fileID: 1084010703}
-  effectMusicSource: {fileID: 1084010703}
-  Instance: {fileID: 0}
 --- !u!4 &1156058549
 Transform:
   m_ObjectHideFlags: 0
@@ -72012,6 +71996,14 @@ PrefabInstance:
     - target: {fileID: 7331274235606988009, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953246583535262510, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.10745239
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953246583535262510, guid: 9b7b0a2b3ba06d04796c8e57b486783d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -35.399963
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
